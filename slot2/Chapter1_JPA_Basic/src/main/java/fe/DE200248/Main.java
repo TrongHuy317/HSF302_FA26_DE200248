@@ -25,7 +25,13 @@ public class Main {
             emp.setHireDate(LocalDate.of(2023, 1, 15));
             emp.setActive(true);
             
+            // --- TODO 0.10: Giải thích Entity Lifecycle ---
+            // 1) Lúc này (trước save): entity 'emp' vừa được tạo bằng 'new', đang ở trạng thái New/Transient.
+            // 2) Bên trong hàm save(): ngay sau khi gọi em.persist(emp), nó chuyển sang trạng thái Managed.
             dao.save(emp);
+            
+            // 3) Lúc này (sau khi save return): EntityManager bên trong DAO đã bị close(), 
+            // do đó entity 'emp' chuyển sang trạng thái Detached.
             Long savedId = emp.getId();
             System.out.println(" -> Đã tạo thành công! ID được cấp là: " + savedId);
 
@@ -38,7 +44,10 @@ public class Main {
             System.out.println("\n[3] Đang cập nhật lương (Update) cho Employee...");
             readEmp1.setSalary(new BigDecimal("9999.99"));
             readEmp1.setActive(false);
-            dao.update(readEmp1);
+            
+            // 4) Khi gọi dao.update(): bên trong DAO, object trả về từ em.merge() là Managed (trong transaction đó).
+            // Còn object 'readEmp1' (cũ) truyền vào vẫn giữ nguyên trạng thái Detached.
+            readEmp1 = dao.update(readEmp1); 
             System.out.println(" -> Đã gọi lệnh update thành công.");
 
             // 4. READ (Đọc lại kiểm tra update)
@@ -48,6 +57,9 @@ public class Main {
 
             // 5. DELETE (Xóa)
             System.out.println("\n[5] Đang xóa (Delete) Employee có ID = " + savedId + "...");
+            
+            // 5) Trong hàm delete(): sau khi gọi em.remove(e), entity e chuyển sang trạng thái Removed.
+            // Khi transaction commit(), data thực sự bị xóa khỏi DB.
             dao.delete(savedId);
             System.out.println(" -> Đã gọi lệnh delete thành công.");
 
