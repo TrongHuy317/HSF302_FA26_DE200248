@@ -60,6 +60,40 @@ public class Main {
                 System.out.println(" -> Kết quả: " + readEmp3);
             }
 
+            System.out.println("\n--- TODO 0.9: KIỂM CHỨNG RÀNG BUỘC UNIQUE EMAIL ---");
+            String duplicateEmail = "test_unique_" + System.currentTimeMillis() + "@example.com";
+            
+            System.out.println(" -> Tạo Nhân viên A với email: " + duplicateEmail);
+            Employee empA = new Employee();
+            empA.setFullName("Nhân viên A");
+            empA.setEmail(duplicateEmail);
+            empA.setSalary(new BigDecimal("1000"));
+            empA.setGender(Gender.FEMALE);
+            empA.setHireDate(LocalDate.now());
+            empA.setActive(true);
+            dao.save(empA);
+            System.out.println(" -> Lưu Nhân viên A thành công!");
+
+            System.out.println(" -> Tạo Nhân viên B với CÙNG email: " + duplicateEmail);
+            Employee empB = new Employee();
+            empB.setFullName("Nhân viên B");
+            empB.setEmail(duplicateEmail); // Cố tình set trùng email
+            empB.setSalary(new BigDecimal("2000"));
+            empB.setGender(Gender.MALE);
+            empB.setHireDate(LocalDate.now());
+            empB.setActive(true);
+
+            try {
+                dao.save(empB);
+                System.out.println(" -> LỖI LOGIC: Không có exception nào bị ném ra, unique constraint không hoạt động!");
+            } catch (Exception ex) {
+                System.out.println(" -> BẮT ĐƯỢC LỖI THÀNH CÔNG: Đã ngăn chặn lưu trùng email!");
+                System.out.println(" -> Chi tiết lỗi từ Hibernate: " + ex.getMessage());
+            }
+
+            // Dọn dẹp
+            dao.delete(empA.getId());
+
             System.out.println("\n--- KẾT THÚC DEMO THÀNH CÔNG, KHÔNG CÓ LỖI ---");
             
         } catch (Exception e) {
