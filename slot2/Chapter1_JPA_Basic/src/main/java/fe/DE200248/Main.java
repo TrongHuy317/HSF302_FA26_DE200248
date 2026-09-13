@@ -1,17 +1,36 @@
 package fe.DE200248;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import fe.DE200248.dao.EmployeeDAO;
+import fe.DE200248.entity.Employee;
+import fe.DE200248.entity.Gender;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+        System.out.println("Đang khởi tạo kết nối Database...");
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+        try {
+            EmployeeDAO dao = new EmployeeDAO();
+            System.out.println("Kết nối Database thành công! Bảng đã được tự động tạo/cập nhật.");
+
+            // Test chức năng lưu Employee
+            Employee emp = new Employee();
+            emp.setFullName("Nguyen Trong Huy");
+            emp.setEmail("huynt@example.com");
+            emp.setSalary(new BigDecimal("1500.50"));
+            emp.setGender(Gender.MALE);
+            emp.setHireDate(LocalDate.of(2023, 1, 15));
+            emp.setActive(true);
+
+            System.out.println("Trước khi save, ID = " + emp.getId());
+            dao.save(emp);
+            System.out.println("Sau khi save thành công, ID = " + emp.getId());
+
+        } catch (Exception e) {
+            System.err.println("Có lỗi xảy ra khi kết nối hoặc lưu dữ liệu:");
+            e.printStackTrace();
         }
     }
 }
