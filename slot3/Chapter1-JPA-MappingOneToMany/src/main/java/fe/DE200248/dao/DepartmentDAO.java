@@ -4,6 +4,8 @@ import fe.DE200248.pojo.Department;
 import fe.DE200248.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.TypedQuery;
 
 import java.util.List;
 
@@ -77,6 +79,20 @@ public class DepartmentDAO {
         EntityManager em = JPAUtil.getEMF().createEntityManager();
         try {
             return em.createQuery("SELECT d FROM Department d", Department.class).getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public Department findByIdWithEmployees(Long id) {
+        EntityManager em = JPAUtil.getEMF().createEntityManager();
+        try {
+            TypedQuery<Department> query = em.createQuery(
+                    "SELECT d FROM Department d JOIN FETCH d.employees WHERE d.id = :id", Department.class);
+            query.setParameter("id", id);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
