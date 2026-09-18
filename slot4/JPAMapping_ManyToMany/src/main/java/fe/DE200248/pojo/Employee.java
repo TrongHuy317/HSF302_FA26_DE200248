@@ -144,6 +144,12 @@ public class Employee {
         this.projects = projects;
     }
 
+    // TODO 5.5: Helper method để đồng bộ hóa quan hệ N-N cả 2 chiều
+    public void assignToProject(Project p) {
+        this.projects.add(p);
+        p.getEmployees().add(this);
+    }
+
     @Override
     public String toString() {
         return "Employee{" +
