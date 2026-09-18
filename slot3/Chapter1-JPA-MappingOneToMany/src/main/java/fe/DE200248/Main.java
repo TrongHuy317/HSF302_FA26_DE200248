@@ -70,6 +70,24 @@ public class Main {
             em.close();
         }
 
+        System.out.println("\n=== TODO 2.9: Fix N+1 bằng JOIN FETCH ===");
+        System.out.println("--- Gọi findAllWithEmployees() ---");
+        // Gọi hàm DAO mới tạo (EntityManager bên trong sẽ mở và đóng ngay trong hàm)
+        // Dù đóng EM, vòng lặp sau đó vẫn không bị LazyInitializationException
+        java.util.List<Department> allDeptsFixed = departmentDAO.findAllWithEmployees();
+        System.out.println("-> Tìm thấy " + allDeptsFixed.size() + " phòng ban. (Chỉ sinh ra ĐÚNG 1 câu SELECT JOIN FETCH)");
+
+        for (Department d : allDeptsFixed) {
+            System.out.println("Phòng ban: " + d.getName());
+            for (Employee e : d.getEmployees()) {
+                System.out.println("  - " + e.getFullName());
+            }
+        }
+        
+        System.out.println("\n-> [KẾT LUẬN SO SÁNH SQL]");
+        System.out.println("   - Trước khi fix (TODO 2.8): 1 câu SELECT findAll + N câu SELECT employees = 1 + N câu.");
+        System.out.println("   - Sau khi fix (TODO 2.9)  : 1 câu SELECT duy nhất chứa JOIN FETCH lấy tất cả dữ liệu cùng lúc.");
+
         System.out.println("\n--- Thử save() thêm 1 Employee dùng lại email đã tồn tại ---");
         try {
             Employee duplicateEmp = new Employee("aa.nguyen@company.com", "Duplicate Test", Gender.MALE,

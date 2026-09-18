@@ -97,4 +97,13 @@ public class DepartmentDAO {
             em.close();
         }
     }
+
+    public List<Department> findAllWithEmployees() {
+        EntityManager em = JPAUtil.getEMF().createEntityManager();
+        try {
+            return em.createQuery("SELECT d FROM Department d JOIN FETCH d.employees", Department.class).getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }
