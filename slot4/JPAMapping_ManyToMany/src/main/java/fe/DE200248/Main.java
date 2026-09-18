@@ -99,6 +99,57 @@ public class Main {
             System.out.println("Bắt thành công exception vi phạm Unique Email: " + ex.getMessage());
         }
 
+        System.out.println("\n=== TODO 5.7: ManyToMany Demo ===");
+        // 1. Tạo 3 Employee (cần set department vì nullable=false)
+        Employee nv1 = new Employee("nv1@test.com", "NV 1", Gender.MALE, new BigDecimal("1000"), LocalDate.now(), true);
+        Employee nv2 = new Employee("nv2@test.com", "NV 2", Gender.FEMALE, new BigDecimal("2000"), LocalDate.now(), true);
+        Employee nv3 = new Employee("nv3@test.com", "NV 3", Gender.OTHER, new BigDecimal("3000"), LocalDate.now(), true);
+
+        nv1.setDepartment(found);
+        nv2.setDepartment(found);
+        nv3.setDepartment(found);
+
+        EmployeeDAO empDAO = new EmployeeDAO();
+        empDAO.save(nv1);
+        empDAO.save(nv2);
+        empDAO.save(nv3);
+
+        // 2. Tạo 2 Project
+        fe.DE200248.pojo.Project pA = new fe.DE200248.pojo.Project("Dự án A", "PROJ-A");
+        fe.DE200248.pojo.Project pB = new fe.DE200248.pojo.Project("Dự án B", "PROJ-B");
+
+        jakarta.persistence.EntityManager em57 = JPAUtil.getEMF().createEntityManager();
+        em57.getTransaction().begin();
+        em57.persist(pA);
+        em57.persist(pB);
+        em57.getTransaction().commit();
+        em57.close();
+
+        // 3. Phân công chéo
+        empDAO.assignEmployeeToProject(nv1.getId(), pA.getId());
+        empDAO.assignEmployeeToProject(nv1.getId(), pB.getId());
+
+        empDAO.assignEmployeeToProject(nv2.getId(), pB.getId());
+
+        empDAO.assignEmployeeToProject(nv3.getId(), pA.getId());
+
+        // 4. In ra danh sách project của từng nhân viên
+        jakarta.persistence.EntityManager emPrint = JPAUtil.getEMF().createEntityManager();
+        try {
+            System.out.println("--- Danh sách Project của từng nhân viên ---");
+            // Fetch những nhân viên vừa tạo
+            java.util.List<Employee> listE = emPrint.createQuery("SELECT e FROM Employee e WHERE e.email LIKE 'nv%@test.com'", Employee.class).getResultList();
+            for (Employee e : listE) {
+                System.out.println("Nhân viên: " + e.getFullName());
+                // Truy cập getProjects() cần có Transaction/EntityManager đang mở để khỏi dính LazyInitializationException
+                for (fe.DE200248.pojo.Project p : e.getProjects()) {
+                    System.out.println("  -> Tham gia: " + p.getName() + " (" + p.getProjectCode() + ")");
+                }
+            }
+        } finally {
+            emPrint.close();
+        }
+
         JPAUtil.close();
     }
 }
