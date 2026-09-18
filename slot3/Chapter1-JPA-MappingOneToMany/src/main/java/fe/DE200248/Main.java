@@ -43,6 +43,33 @@ public class Main {
             System.out.println("  - " + e);
         }
 
+        System.out.println("\n=== TODO 2.8: Tái hiện N+1 Query Problem ===");
+        // Tạo thêm 1 phòng ban để thấy rõ N+1 (N=2)
+        Department hr = new Department("HR", "HCM");
+        Employee hrEmp = new Employee("hr@company.com", "HR Employee", Gender.FEMALE, new BigDecimal("10000000"), LocalDate.now());
+        hr.addEmployee(hrEmp);
+        departmentDAO.save(hr);
+
+        jakarta.persistence.EntityManager em = JPAUtil.getEMF().createEntityManager();
+        try {
+            System.out.println("\n--- 1. Gọi findAll() (Không JOIN FETCH) ---");
+            java.util.List<Department> allDepts = em.createQuery("SELECT d FROM Department d", Department.class).getResultList();
+            System.out.println("-> Tìm thấy " + allDepts.size() + " phòng ban. (Đã sinh ra 1 câu SELECT cho Department)");
+
+            System.out.println("\n--- 2. Lặp qua department.getEmployees() của từng phần tử ---");
+            for (Department d : allDepts) {
+                System.out.println("Phòng ban: " + d.getName());
+                // Truy cập getEmployees() -> Kích hoạt query riêng (Lazy Loading)
+                for (Employee e : d.getEmployees()) {
+                    System.out.println("  - " + e.getFullName());
+                }
+            }
+            System.out.println("\n-> Kết luận: Có N phòng ban thì sẽ sinh ra thêm N câu SELECT employees (Tổng = 1 + N câu).");
+            System.out.println("-> Nguyên nhân: Quan hệ @OneToMany mặc định là LAZY loading.");
+        } finally {
+            em.close();
+        }
+
         System.out.println("\n--- Thử save() thêm 1 Employee dùng lại email đã tồn tại ---");
         try {
             Employee duplicateEmp = new Employee("aa.nguyen@company.com", "Duplicate Test", Gender.MALE,
