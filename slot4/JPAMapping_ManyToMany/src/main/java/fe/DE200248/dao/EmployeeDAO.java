@@ -1,6 +1,7 @@
 package fe.DE200248.dao;
 
 import fe.DE200248.pojo.Employee;
+import fe.DE200248.pojo.Project;
 import fe.DE200248.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -77,6 +78,32 @@ public class EmployeeDAO {
         EntityManager em = JPAUtil.getEMF().createEntityManager();
         try {
             return em.createQuery("SELECT e FROM Employee e", Employee.class).getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    // TODO 5.6: Gán nhân viên vào dự án
+    public void assignEmployeeToProject(Long employeeId, Long projectId) {
+        EntityManager em = JPAUtil.getEMF().createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            // 1. Tìm cả 2 entity (Employee và Project)
+            Employee employee = em.find(Employee.class, employeeId);
+            Project project = em.find(Project.class, projectId);
+
+            if (employee != null && project != null) {
+                // 2. Gọi helper method để đồng bộ hóa 2 chiều
+                employee.assignToProject(project);
+                // JPA sẽ tự động update bảng employee_project khi commit vì cả 2 đối tượng đang ở trạng thái Managed
+            }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }
