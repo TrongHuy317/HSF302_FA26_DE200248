@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -154,5 +155,25 @@ public class Employee {
                 ", gender=" + gender +
                 ", active=" + active +
                 '}';
+    }
+
+    /*
+     * Lý do KHÔNG dùng `id` cho equals() và hashCode():
+     * - Khi một entity mới (transient) chưa được lưu xuống DB, `id` của nó bằng null.
+     * - Nếu ta cho vào một Collection như Set (HashSet), nó sẽ băm theo null.
+     * - Khi persist xuống DB, DB sẽ tự động tạo `id` mới. Lúc này hash code bị thay đổi, phá vỡ nguyên tắc của Set.
+     * - Do đó, dùng "Business Key" (trong trường hợp này là `email` - unique & không đổi) là chuẩn nhất.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Employee employee = (Employee) o;
+        return Objects.equals(email, employee.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email);
     }
 }
