@@ -12,34 +12,42 @@ import java.time.LocalDate;
 
 public class Main {
     public static void main(String[] args) {
-        Department dept = new Department("Marketing", "Ha Noi");
+        DepartmentDAO departmentDAO = new DepartmentDAO();
 
-        Employee emp = new Employee("test2@company.com", "Test", Gender.OTHER,
-                new BigDecimal("1000"), LocalDate.now());
-        Employee e2 = new Employee("bc@company.com", "B", Gender.FEMALE,
-                new BigDecimal("1200"), LocalDate.of(2022, 2, 1));
-        Employee e3 = new Employee("cd@company.com", "C", Gender.OTHER,
-                new BigDecimal("1500"), LocalDate.of(2022, 3, 1));
+        // 1) Tạo Department + 3 Employee, add qua helper method (TODO 2.4)
+        Department it = new Department("Marketing", "Ha Noi");
 
-        dept.addEmployee(emp);
-        dept.addEmployee(e2);
-        dept.addEmployee(e3);
+        Employee e1 = new Employee("aa.nguyen@company.com", "Nguyen Van A",
+                Gender.MALE,
+                new BigDecimal("15000000"), LocalDate.of(2022, 1, 10));
+        Employee e2 = new Employee("bb.tran@company.com", "Tran Thi B", Gender.FEMALE,
+                new BigDecimal("18000000"), LocalDate.of(2021, 6, 1));
+        Employee e3 = new Employee("cc.le@company.com", "Le Van C", Gender.OTHER,
+                new BigDecimal("12000000"), LocalDate.of(2023, 3, 15));
 
-        DepartmentDAO deptDAO = new DepartmentDAO();
-        deptDAO.save(dept);
-        System.out.println("Đã thêm: " + dept.getName() + ", ID = " + dept.getId());
+        it.addEmployee(e1);
+        it.addEmployee(e2);
+        it.addEmployee(e3);
 
-        Department found = deptDAO.findByIdWithEmployees(dept.getId());
-        System.out.println("Tìm lại phòng ban: " + found.getName());
+        // 2) Chỉ persist(department) - cascade = ALL tự lo phần Employee (TODO 2.7)
+        departmentDAO.save(it);
+        
+        System.out.println("Da luu Department, id = " + it.getId());
+
+        // 3) Tim lai kem employees bang JOIN FETCH (TODO 2.6) - khong bi 
+        // LazyInitializationException du EntityManager cua lan tim nay da dong,
+        // vi employees da duoc load ngay trong cung 1 query.
+        Department found = departmentDAO.findByIdWithEmployees(it.getId());
+        System.out.println("Phong ban: " + found.getName());
         for (Employee e : found.getEmployees()) {
             System.out.println("  - " + e);
         }
 
-        System.out.println("Testing duplicate email exception...");
+        System.out.println("\n--- Thử save() thêm 1 Employee dùng lại email đã tồn tại ---");
         try {
-            Employee duplicateEmp = new Employee("test2@company.com", "Duplicate Test", Gender.MALE,
+            Employee duplicateEmp = new Employee("aa.nguyen@company.com", "Duplicate Test", Gender.MALE,
                     new BigDecimal("2000"), LocalDate.now());
-            duplicateEmp.setDepartment(dept);
+            duplicateEmp.setDepartment(found);
             EmployeeDAO empDAO = new EmployeeDAO();
             empDAO.save(duplicateEmp);
         } catch (Exception ex) {
