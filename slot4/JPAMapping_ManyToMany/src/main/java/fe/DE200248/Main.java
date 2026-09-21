@@ -143,11 +143,21 @@ public class Main {
                 System.out.println("Nhân viên: " + e.getFullName());
                 // Truy cập getProjects() cần có Transaction/EntityManager đang mở để khỏi dính LazyInitializationException
                 for (fe.DE200248.pojo.Project p : e.getProjects()) {
-                    System.out.println("  -> Tham gia: " + p.getName() + " (" + p.getProjectCode() + ")");
+                    System.out.println("  -> Tham gia: " + p.getProjectName() + " (" + p.getProjectCode() + ")");
                 }
             }
         } finally {
             emPrint.close();
+        }
+
+        System.out.println("\n=== TODO 5.8: JPQL Thống kê Project ===");
+        fe.DE200248.dao.ProjectDAO projectDAO = new fe.DE200248.dao.ProjectDAO();
+        java.util.List<Object[]> stats = projectDAO.getProjectStats();
+        for (Object[] row : stats) {
+            String projName = (String) row[0];
+            Long empCount = (Long) row[1];
+            java.math.BigDecimal totalSalary = (java.math.BigDecimal) row[2];
+            System.out.println("Project: " + projName + " | Số NV active: " + empCount + " | Tổng lương: " + totalSalary);
         }
 
         JPAUtil.close();

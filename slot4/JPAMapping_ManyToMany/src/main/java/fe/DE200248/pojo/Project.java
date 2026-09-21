@@ -13,7 +13,7 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String projectName;
 
     @Column(unique = true, nullable = false)
     private String projectCode;
@@ -25,8 +25,8 @@ public class Project {
     public Project() {
     }
 
-    public Project(String name, String projectCode) {
-        this.name = name;
+    public Project(String projectName, String projectCode) {
+        this.projectName = projectName;
         this.projectCode = projectCode;
     }
 
@@ -38,12 +38,12 @@ public class Project {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getProjectName() {
+        return projectName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public String getProjectCode() {
