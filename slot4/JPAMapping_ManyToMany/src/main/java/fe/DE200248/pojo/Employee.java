@@ -150,6 +150,12 @@ public class Employee {
         p.getEmployees().add(this);
     }
 
+    // TODO 5.9: Helper method để gỡ nhân viên khỏi dự án
+    public void unassignFromProject(Project p) {
+        this.projects.remove(p);
+        p.getEmployees().remove(this);
+    }
+
     @Override
     public String toString() {
         return "Employee{" +

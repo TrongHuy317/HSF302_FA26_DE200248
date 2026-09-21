@@ -108,4 +108,29 @@ public class EmployeeDAO {
             em.close();
         }
     }
+
+    // TODO 5.9: Gỡ nhân viên khỏi dự án
+    public void unassignEmployeeFromProject(Long employeeId, Long projectId) {
+        EntityManager em = JPAUtil.getEMF().createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Employee employee = em.find(Employee.class, employeeId);
+            Project project = em.find(Project.class, projectId);
+
+            if (employee != null && project != null) {
+                // Gọi helper method để gỡ khỏi Set
+                // Do dùng Set thay vì List, Hibernate sẽ chỉ gen 1 lệnh DELETE đúng 1 dòng trên bảng trung gian
+                employee.unassignFromProject(project);
+            }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
 }

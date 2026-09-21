@@ -160,6 +160,18 @@ public class Main {
             System.out.println("Project: " + projName + " | Số NV active: " + empCount + " | Tổng lương: " + totalSalary);
         }
 
+        System.out.println("\n=== TODO 5.9: Gỡ nhân viên khỏi Project ===");
+        System.out.println("Gỡ NV1 ra khỏi Dự án A...");
+        empDAO.unassignEmployeeFromProject(nv1.getId(), pA.getId());
+        
+        System.out.println("Gọi lại thống kê để xác nhận (số lượng NV của Dự án A sẽ giảm 1, NV gốc và Project gốc không bị xóa):");
+        java.util.List<Object[]> statsAfter = projectDAO.getProjectStats();
+        for (Object[] row : statsAfter) {
+            String projName = (String) row[0];
+            Long empCount = (Long) row[1];
+            System.out.println("Project: " + projName + " | Số NV active: " + empCount);
+        }
+
         JPAUtil.close();
     }
 }
