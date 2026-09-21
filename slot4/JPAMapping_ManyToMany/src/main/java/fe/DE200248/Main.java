@@ -172,6 +172,19 @@ public class Main {
             System.out.println("Project: " + projName + " | Số NV active: " + empCount);
         }
 
+        System.out.println("\n=== TODO 5.10: Tìm Employee tham gia > 1 Project ===");
+        System.out.println("Gán lại NV1 vào Dự án A để test...");
+        empDAO.assignEmployeeToProject(nv1.getId(), pA.getId());
+
+        java.util.List<Employee> busyEmployees = empDAO.findEmployeesInMultipleProjects();
+        if (busyEmployees.isEmpty()) {
+            System.out.println("Không có nhân viên nào tham gia nhiều hơn 1 dự án.");
+        } else {
+            for (Employee e : busyEmployees) {
+                System.out.println("Nhân viên bận rộn (>1 project): " + e.getFullName());
+            }
+        }
+
         JPAUtil.close();
     }
 }

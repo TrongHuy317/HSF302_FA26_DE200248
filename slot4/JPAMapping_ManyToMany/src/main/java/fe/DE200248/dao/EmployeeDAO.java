@@ -133,4 +133,15 @@ public class EmployeeDAO {
             em.close();
         }
     }
+
+    // TODO 5.10: Viết JPQL tìm các Employee đang tham gia > 1 project
+    public List<Employee> findEmployeesInMultipleProjects() {
+        EntityManager em = JPAUtil.getEMF().createEntityManager();
+        try {
+            String jpql = "SELECT e FROM Employee e WHERE e.active = true AND SIZE(e.projects) > 1";
+            return em.createQuery(jpql, Employee.class).getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }
