@@ -185,6 +185,15 @@ public class Main {
             }
         }
 
+        System.out.println("\n=== TODO 5.11 / Checklist: Demo kiểm tra equals()/hashCode() ===");
+        java.util.Set<Employee> testSet = new java.util.HashSet<>();
+        Employee testEmp1 = new Employee("nv1@test.com", "NV 1", Gender.MALE, new BigDecimal("1000"), LocalDate.now(), true);
+        Employee testEmp2 = new Employee("nv1@test.com", "Bản sao NV 1 (Khác instance)", Gender.MALE, new BigDecimal("1000"), LocalDate.now(), true);
+        testSet.add(testEmp1);
+        testSet.add(testEmp2);
+        System.out.println("Thêm 2 object có cùng email vào Set...");
+        System.out.println("-> Kích thước của Set hiện tại: " + testSet.size() + " (Kỳ vọng: 1)");
+
         JPAUtil.close();
     }
 }

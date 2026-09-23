@@ -33,6 +33,9 @@ public class Employee {
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
+    // KHÔNG dùng CascadeType.ALL (đặc biệt là CascadeType.REMOVE) ở quan hệ N-N.
+    // Lý do: Tránh xóa nhầm entity phía bên kia. Ví dụ: Nếu xóa 1 Project, ta không muốn 
+    // Hibernate tự động xóa luôn các Employee đang làm dự án đó (và ngược lại).
     @ManyToMany
     @JoinTable(
             name = "employee_project",
