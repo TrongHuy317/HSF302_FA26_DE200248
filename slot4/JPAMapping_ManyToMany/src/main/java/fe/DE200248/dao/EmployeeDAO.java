@@ -144,4 +144,42 @@ public class EmployeeDAO {
             em.close();
         }
     }
+
+    // TODO 5.11: Deactivate nhân viên và giải thích logic
+    /*
+     * CÂU HỎI: Nhân viên nghỉ việc có nên tự động bị gỡ khỏi tất cả project hay không?
+     * TRẢ LỜI: KHÔNG NÊN gỡ tự động (và tuyệt đối không dùng CascadeType.REMOVE).
+     *
+     * Lý do (Business Logic):
+     * 1. Lịch sử làm việc (History): Nếu xóa nhân viên khỏi project (xóa dòng trong bảng employee_project),
+     *    ta sẽ mất hoàn toàn dấu vết rằng nhân viên này đã từng đóng góp/tham gia dự án đó trong quá khứ.
+     * 2. Báo cáo & Thống kê: Các module tính lương, thống kê chi phí dự án vẫn cần biết nhân viên đó
+     *    đã từng làm ở đây.
+     *
+     * Cách xử lý phù hợp:
+     * - Chỉ sử dụng "Soft Delete" (đánh dấu active = false) trên bảng Employee.
+     * - Giữ nguyên các bản ghi trong bảng trung gian employee_project.
+     * - Khi cần truy vấn nhân sự ĐANG làm việc cho dự án, ta thêm điều kiện `WHERE e.active = true`
+     *   (Giống hệt như cách ta đã làm ở TODO 5.8 và 5.10).
+     */
+    public void deactivateEmployee(Long employeeId) {
+        EntityManager em = JPAUtil.getEMF().createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Employee employee = em.find(Employee.class, employeeId);
+            if (employee != null) {
+                // Chỉ "Soft Delete" (set active = false), không xóa khỏi Set projects
+                employee.setActive(false);
+            }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
 }
