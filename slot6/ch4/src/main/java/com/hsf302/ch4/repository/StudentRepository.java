@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.List;
 import com.hsf302.ch4.pojo.Gender;
 import java.time.LocalDate;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface StudentRepository extends JpaRepository<Student, Long>,
                                            JpaSpecificationExecutor<Student> {
@@ -27,4 +29,10 @@ public interface StudentRepository extends JpaRepository<Student, Long>,
     List<Student> findByDepartment_CodeOrderByFullNameAsc(String code);   // JOIN departments ... WHERE d.code = ?
     long countByDepartment_Code(String code);
     List<Student> findTop3ByOrderByGpaDesc();                              // SELECT TOP 3 ... ORDER BY gpa DESC
+
+    @Query("SELECT s FROM Student s " +
+           "WHERE s.department.code = :code AND s.gpa >= :minGpa " +
+           "ORDER BY s.gpa DESC")
+    List<Student> findGoodStudentsInDepartment(@Param("code") String code,
+                                               @Param("minGpa") double minGpa);
 }
