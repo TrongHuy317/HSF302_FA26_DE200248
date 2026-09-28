@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import com.hsf302.ch4.pojo.Department;
+import com.hsf302.ch4.dto.DepartmentStatDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -31,5 +32,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public List<Department> findDepartmentsWithoutStudents() {
         return departmentRepository.findByStudentsIsEmpty();
+    }
+
+    @Override
+    public List<DepartmentStatDTO> getStatistics() {
+        return departmentRepository.getDepartmentStats();
     }
 }
