@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import com.hsf302.ch4.pojo.Department;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -23,5 +26,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public boolean existsById(Long id) {
         return departmentRepository.existsById(id);
+    }
+
+    @Override
+    public List<Department> findDepartmentsWithoutStudents() {
+        return departmentRepository.findByStudentsIsEmpty();
     }
 }
