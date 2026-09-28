@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import com.hsf302.ch4.pojo.Gender;
 import java.time.LocalDate;
+import com.hsf302.ch4.dto.StudentSummary;
 
 @Service
 @RequiredArgsConstructor
@@ -138,5 +139,10 @@ public class StudentServiceImpl implements StudentService {
             throw new IllegalArgumentException("n phải > 0");
         }
         return studentRepository.findTopNByDepartmentNative(deptCode, n);
+    }
+
+    @Override
+    public List<StudentSummary> getActiveSummaries() {
+        return studentRepository.findActiveSummaries();
     }
 }
