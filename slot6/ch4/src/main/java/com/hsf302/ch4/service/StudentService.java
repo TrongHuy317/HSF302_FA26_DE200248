@@ -5,6 +5,9 @@ import java.util.Optional;
 import java.util.List;
 import org.springframework.data.domain.Page;
 
+import com.hsf302.ch4.pojo.Gender;
+import java.time.LocalDate;
+
 public interface StudentService {
     // Các method được bổ sung dần từ TODO 6
     long count();                                   // TODO 6
@@ -17,4 +20,8 @@ public interface StudentService {
     List<Student> searchByName(String keyword);        // TODO 9a
     List<Student> findByEmailDomain(String domain);    // TODO 9b
     List<Student> findWithoutEmail();                  // TODO 9c
+
+    List<Student> findByGpaRange(double min, double max);   // TODO 10a
+    List<Student> findActiveByGender(Gender gender);        // TODO 10b
+    List<Student> findBornAfter(LocalDate date);            // TODO 10c
 }

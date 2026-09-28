@@ -12,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import com.hsf302.ch4.pojo.Gender;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -77,5 +79,23 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<Student> findWithoutEmail() {
         return studentRepository.findByEmailIsNull();
+    }
+
+    @Override
+    public List<Student> findByGpaRange(double min, double max) {
+        if (min > max) {
+            throw new IllegalArgumentException("min GPA phải <= max GPA");
+        }
+        return studentRepository.findByGpaBetweenOrderByGpaDesc(min, max);
+    }
+
+    @Override
+    public List<Student> findActiveByGender(Gender gender) {
+        return studentRepository.findByGenderAndActiveTrue(gender);
+    }
+
+    @Override
+    public List<Student> findBornAfter(LocalDate date) {
+        return studentRepository.findByDobAfter(date);
     }
 }
