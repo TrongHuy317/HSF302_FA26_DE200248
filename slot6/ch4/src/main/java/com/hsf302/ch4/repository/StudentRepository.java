@@ -11,6 +11,8 @@ import java.time.LocalDate;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.hsf302.ch4.dto.StudentSummary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface StudentRepository extends JpaRepository<Student, Long>,
                                            JpaSpecificationExecutor<Student> {
@@ -59,4 +61,7 @@ public interface StudentRepository extends JpaRepository<Student, Long>,
            "WHERE s.active = true " +
            "ORDER BY s.fullName")
     List<StudentSummary> findActiveSummaries();
+
+    @Query("SELECT s FROM Student s WHERE s.department.code = :code AND s.active = true")
+    Page<Student> findActiveByDepartment(@Param("code") String code, Pageable pageable);
 }
