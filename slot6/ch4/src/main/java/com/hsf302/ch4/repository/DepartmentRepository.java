@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.List;
 import com.hsf302.ch4.dto.DepartmentStatDTO;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
     // sẽ bổ sung dần ở các TODO sau
@@ -18,4 +19,7 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
            "GROUP BY d.code, d.name " +
            "ORDER BY d.code")
     List<DepartmentStatDTO> getDepartmentStats();
+
+    @Query("SELECT d FROM Department d LEFT JOIN FETCH d.students WHERE d.code = :code")
+    Optional<Department> findByCodeWithStudents(@Param("code") String code);
 }
