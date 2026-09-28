@@ -173,7 +173,13 @@ public class ExerciseRunner implements CommandLineRunner {
         System.out.println("Rows affected: " + rows);
         System.out.println("Active students now: " + studentService.countActive());
     }
-    private void todo22() {}
+    private void todo22() {
+        title("TODO 22: Transfer IA -> SE, then delete IA");
+        int moved = departmentService.transferStudentsAndDelete("IA", "SE");
+        System.out.println("Students moved: " + moved);
+        System.out.println("Students of SE: " + studentService.countByDepartment("SE"));
+        printList("Departments left", departmentService.findAll());
+    }
     private void todo23() {}
     private void todo24() {
         title("TODO 24 (Bonus): Specification");
