@@ -36,4 +36,7 @@ public interface StudentService {
     List<StudentSummary> getActiveSummaries();   // TODO 18
     Page<Student> findActiveByDepartment(String deptCode, int pageIndex, int size);   // TODO 19
     List<Student> search(String kw, String deptCode, Double minGpa, Boolean active);   // TODO 24
+
+    // ===== Part E — Modifying =====
+    Student updateGpa(String studentCode, double newGpa);                            // TODO 20
 }
