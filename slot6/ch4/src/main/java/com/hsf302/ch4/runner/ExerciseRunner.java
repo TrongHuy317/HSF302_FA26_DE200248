@@ -27,11 +27,12 @@ public class ExerciseRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        partB();
-        partC();
-        partD();
-        bonus();      // chạy trên dữ liệu gốc → trước Part E
-        partE();
+//        partB();
+//        partC();
+//        partD();
+//        bonus();      // chạy trên dữ liệu gốc → trước Part E
+//        partE();
+        todo25();
     }
 
     private void partB() { todo6(); todo7(); }
@@ -192,5 +193,14 @@ public class ExerciseRunner implements CommandLineRunner {
         title("TODO 24 (Bonus): Specification");
         printList("search(null, AI, 3.0, true)", studentService.search(null, "AI", 3.0, true));
         printList("search(van, null, null, null)", studentService.search("van", null, null, null));
+    }
+    private void todo25() {
+        title("TODO 25: Lọc sinh viên theo Giới tính");
+
+        // Gọi Service tìm sinh viên NỮ (FEMALE)
+        printList("Danh sách Nữ", studentService.findByGender(Gender.FEMALE));
+
+        // Gọi Service tìm sinh viên NAM (MALE)
+        printList("Danh sách Nam", studentService.findByGender(Gender.MALE));
     }
 }

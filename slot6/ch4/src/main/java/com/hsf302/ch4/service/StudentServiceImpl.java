@@ -163,6 +163,14 @@ public class StudentServiceImpl implements StudentService {
         return studentRepository.findAll(spec, Sort.by("fullName"));
     }
 
+    @Override
+    public List<Student> findByGender(Gender gender) {
+        if (gender == null) {
+            return List.of();
+        }
+        return studentRepository.findByGender(gender);
+    }
+
     // ===== Part E — ghi dữ liệu: @Transactional ghi đè readOnly =====
     @Override
     @Transactional

@@ -77,4 +77,6 @@ public interface StudentRepository extends JpaRepository<Student, Long>,
     int transferStudents(@Param("from") Department from, @Param("to") Department to);
 
     long deleteByActiveFalse();
+
+    List<Student> findByGender(Gender gender);
 }
