@@ -14,6 +14,7 @@ import com.hsf302.ch4.pojo.Department;
 import com.hsf302.ch4.pojo.Gender;
 import java.time.LocalDate;
 import com.hsf302.ch4.dto.StudentSummary;
+import java.util.List;
 
 @Component
 @Order(2)
