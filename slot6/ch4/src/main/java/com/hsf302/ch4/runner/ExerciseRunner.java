@@ -28,13 +28,13 @@ public class ExerciseRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-//        partB();
-//        partC();
-//        partD();
-//        bonus();      // chạy trên dữ liệu gốc → trước Part E
-//        partE();
+        partB();
+        partC();
+        partD();
+        bonus();      // chạy trên dữ liệu gốc → trước Part E
+        partE();
 //        todo25();
-        printDepartmentStudentCount();
+//        printDepartmentStudentCount();
     }
 
     private void partB() { todo6(); todo7(); }
