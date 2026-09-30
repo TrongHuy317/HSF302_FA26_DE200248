@@ -72,4 +72,9 @@ public class DepartmentServiceImpl implements DepartmentService {
     public List<Department> findAll() {
         return departmentRepository.findAll(Sort.by("id"));
     }
+
+    @Override
+    public List<Object[]> countStudentsByDepartment() {
+        return departmentRepository.countStudentsByDepartment();
+    }
 }

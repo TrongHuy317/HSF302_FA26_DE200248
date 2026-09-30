@@ -32,7 +32,8 @@ public class ExerciseRunner implements CommandLineRunner {
 //        partD();
 //        bonus();      // chạy trên dữ liệu gốc → trước Part E
 //        partE();
-        todo25();
+//        todo25();
+        printDepartmentStudentCount();
     }
 
     private void partB() { todo6(); todo7(); }
@@ -202,5 +203,20 @@ public class ExerciseRunner implements CommandLineRunner {
 
         // Gọi Service tìm sinh viên NAM (MALE)
         printList("Danh sách Nam", studentService.findByGender(Gender.MALE));
+    }
+    private void printDepartmentStudentCount() {
+        title("THỐNG KÊ SỐ LƯỢNG SINH VIÊN THEO KHOA (Object[])");
+
+        // Gọi service để lấy dữ liệu
+        List<Object[]> results = departmentService.countStudentsByDepartment();
+
+        // Lặp qua từng dòng kết quả và in ra
+        for (Object[] row : results) {
+            String deptName = (String) row[0];   // Cột 1: Tên khoa
+            Long studentCount = (Long) row[1];   // Cột 2: Số lượng (JPA COUNT luôn trả về Long)
+
+            // In ra màn hình cho ngay ngắn
+            System.out.printf("Khoa: %-25s | Số lượng SV: %d%n", deptName, studentCount);
+        }
     }
 }

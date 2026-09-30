@@ -78,5 +78,8 @@ public interface StudentRepository extends JpaRepository<Student, Long>,
 
     long deleteByActiveFalse();
 
-    List<Student> findByGender(Gender gender);
+    @Query("SELECT s FROM Student s WHERE s.gender = :gender")
+    List<Student> findByGender(@Param("gender") Gender gender);
+
+
 }

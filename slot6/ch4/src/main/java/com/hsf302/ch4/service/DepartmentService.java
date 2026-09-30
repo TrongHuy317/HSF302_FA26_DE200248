@@ -15,4 +15,5 @@ public interface DepartmentService {
     Department getWithStudents(String code);   // TODO 16b
     int transferStudentsAndDelete(String fromCode, String toCode);   // TODO 22
     List<Department> findAll();                                      // TODO 22
+    List<Object[]> countStudentsByDepartment();
 }
