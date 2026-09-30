@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-
+import org.springframework.context.annotation.Profile;
 import java.util.Collection;
 import org.springframework.data.domain.Page;
 import com.hsf302.ch4.pojo.Student;
@@ -18,6 +18,7 @@ import java.util.List;
 
 @Component
 @Order(2)
+@Profile("ex1")
 @RequiredArgsConstructor
 public class ExerciseRunner implements CommandLineRunner {
 
