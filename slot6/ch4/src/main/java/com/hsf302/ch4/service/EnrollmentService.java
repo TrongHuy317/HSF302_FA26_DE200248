@@ -9,4 +9,7 @@ public interface EnrollmentService {
     // bổ sung dần từ TODO 7
     List<Course> getCoursesOfStudent(String studentCode);
     List<Student> getStudentsOfCourse(String courseCode);
+    List<Student> findStudentsInCourse(String courseCode);
+    long countStudentsInCourse(String courseCode);
+    List<Student> findActiveStudentsInCourse(String courseCode);
 }
