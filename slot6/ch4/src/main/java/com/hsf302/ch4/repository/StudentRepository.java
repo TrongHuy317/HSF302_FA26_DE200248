@@ -87,5 +87,8 @@ public interface StudentRepository extends JpaRepository<Student, Long>,
     @Query("SELECT s FROM Student s WHERE s.gender = :gender")
     List<Student> findByGender(@Param("gender") Gender gender);
 
-
+    @Query("SELECT s FROM Student s JOIN s.courses c " +
+            "WHERE c.code = :code AND s.gpa >= :minGpa ORDER BY s.gpa DESC")
+    List<Student> findGoodStudentsInCourse(@Param("code") String courseCode,
+                                           @Param("minGpa") double minGpa);
 }
