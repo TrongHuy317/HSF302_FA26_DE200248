@@ -34,7 +34,7 @@ public class Exercise2Runner implements CommandLineRunner {
 //        partD();
 //        bonus();        // chạy trên dữ liệu gốc → trước Part E
 //        partE();
-        todo16();
+        todo17();
     }
 
     private void partB() { todo6(); todo7(); }
@@ -158,5 +158,10 @@ public class Exercise2Runner implements CommandLineRunner {
         c.getStudents().stream()
                 .sorted(Comparator.comparing(Student::getFullName))
                 .forEach(st -> System.out.println("   " + st));
+    }
+    private void todo17() {
+        title("TODO 17: native SQL on join table - top 3 enrolled courses");
+        courseService.findTopEnrolled(3).forEach(r -> System.out.printf(
+                "   %s | %-35s | %d student(s)%n", r.getCode(), r.getName(), r.getEnrolled()));
     }
 }
