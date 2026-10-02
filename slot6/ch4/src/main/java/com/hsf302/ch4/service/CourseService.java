@@ -21,4 +21,9 @@ public interface CourseService {
     List<Course> findFullCourses();
     Course getWithStudents(String code);
     List<CourseEnrollmentCount> findTopEnrolled(int n);
+    List<Course> findByCreditsRange(int min, int max);
+    long countCoursesWithCreditsGreaterThan(int credits);
+    List<Course> findCoursesByCreditsRangeCustom(int min, int max);
+    long countCoursesWithCreditsGreaterThanCustom(int credits);
+    List<Course> findCoursesByNameContainingCustom(String keyword);
 }

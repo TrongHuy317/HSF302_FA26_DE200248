@@ -83,4 +83,38 @@ public class CourseServiceImpl implements CourseService {
         }
         return courseRepository.findTopEnrolledNative(n);
     }
+    @Override
+    public List<Course> findByCreditsRange(int min, int max) {
+        if (min < 0 || max < min) {
+            throw new IllegalArgumentException("Cần 0 <= min <= max");
+        }
+
+        return courseRepository.findByCreditsBetweenOrderByCodeAsc(min, max);
+    }
+    @Override
+    public long countCoursesWithCreditsGreaterThan(int credits) {
+        return courseRepository.countByCreditsGreaterThan(credits);
+    }
+    @Override
+    public List<Course> findCoursesByCreditsRangeCustom(int min, int max) {
+        if (min < 0 || max < min) {
+            throw new IllegalArgumentException("Cần 0 <= min <= max");
+        }
+        return courseRepository.findCoursesByCreditsRangeCustom(min, max);
+    }
+
+    @Override
+    public long countCoursesWithCreditsGreaterThanCustom(int credits) {
+        if (credits < 0) {
+            throw new IllegalArgumentException("credits không được âm");
+        }
+        return courseRepository.countCoursesWithCreditsGreaterThanCustom(credits);
+    }
+    @Override
+    public List<Course> findCoursesByNameContainingCustom(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            throw new IllegalArgumentException("Từ khóa không được để trống");
+        }
+        return courseRepository.findCoursesByNameContainingCustom(keyword.trim());
+    }
 }

@@ -34,7 +34,8 @@ public class Exercise2Runner implements CommandLineRunner {
 //        partD();
 //        bonus();        // chạy trên dữ liệu gốc → trước Part E
 //        partE();
-        todo17();
+        //testCustomCreditsQueries();
+        todo18();
     }
 
     private void partB() { todo6(); todo7(); }
@@ -164,4 +165,30 @@ public class Exercise2Runner implements CommandLineRunner {
         courseService.findTopEnrolled(3).forEach(r -> System.out.printf(
                 "   %s | %-35s | %d student(s)%n", r.getCode(), r.getName(), r.getEnrolled()));
     }
+    private void testCreditsRange() {
+        System.out.println("Courses with credits from 2 to 3:");
+        courseService.findByCreditsRange(2, 3)
+                .forEach(System.out::println);
+    }
+    private void testCustomCreditsQueries() {
+        title("Custom query: course credits");
+
+        printList("Courses with credits from 2 to 3",
+                courseService.findCoursesByCreditsRangeCustom(2, 3));
+
+        System.out.println("Courses with credits > 3: "
+                + courseService.countCoursesWithCreditsGreaterThanCustom(3));
+    }
+    private void testCourseNameSearch() {
+        printList("Courses whose name contains 'ing'",
+                courseService.findCoursesByNameContainingCustom("ing"));
+
+    }
+    private void todo18() {
+        title("TODO 18: interface projection - enrollments of department AI");
+        enrollmentService.getEnrollmentsOfDepartment("AI").forEach(v -> System.out.printf(
+                "   %s | %-14s | %s | %-35s | %d%n",
+                v.getStudentCode(), v.getFullName(), v.getCourseCode(), v.getCourseName(), v.getCredits()));
+    }
+
 }
