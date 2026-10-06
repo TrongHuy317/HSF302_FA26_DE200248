@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
+import com.hsf302.ch4.pojo.Student;
 
 @Service
 @RequiredArgsConstructor
@@ -116,5 +119,24 @@ public class CourseServiceImpl implements CourseService {
             throw new IllegalArgumentException("Từ khóa không được để trống");
         }
         return courseRepository.findCoursesByNameContainingCustom(keyword.trim());
+    }
+
+    @Override
+    @Transactional
+    public void deleteCourseDirectly(String code) {
+        Course c = courseRepository.findByCode(code).orElseThrow(() -> new IllegalArgumentException("Course not found: " + code));
+        courseRepository.delete(c);
+        courseRepository.flush();          // ép Hibernate chạy DELETE ngay để thấy lỗi
+    }
+
+    @Override
+    @Transactional
+    public int deleteCourse(String code) {
+        Course c = courseRepository.findByCode(code).orElseThrow(() -> new IllegalArgumentException("Course not found: " + code));
+        // copy ra Set mới: unenroll() sẽ sửa c.getStudents() → tránh ConcurrentModificationException
+        Set<Student> students = new HashSet<>(c.getStudents());
+        students.forEach(s -> s.unenroll(c));   // gỡ từ OWNING side → DELETE các dòng student_courses
+        courseRepository.delete(c);             // sau đó mới DELETE courses
+        return students.size();
     }
 }

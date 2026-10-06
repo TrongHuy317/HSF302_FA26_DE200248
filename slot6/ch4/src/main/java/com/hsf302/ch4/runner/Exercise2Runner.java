@@ -7,6 +7,7 @@ import com.hsf302.ch4.service.EnrollmentService;
 import com.hsf302.ch4.service.StudentService;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.LazyInitializationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
@@ -40,6 +41,7 @@ public class Exercise2Runner implements CommandLineRunner {
         todo20();
         todo21();
         todo22();
+        todo23();
     }
 
     private void partB() { todo6(); todo7(); }
@@ -234,5 +236,20 @@ public class Exercise2Runner implements CommandLineRunner {
         printList("Courses of SE001", enrollmentService.getCoursesOfStudent("SE001"));
         attempt("switch SE001 PRJ301 -> AIL303", () -> enrollmentService.switchCourse("SE001", "PRJ301", "AIL303"));
         printList("Courses of SE001 (after rollback)", enrollmentService.getCoursesOfStudent("SE001"));
+    }
+
+    private void todo23() {
+        title("TODO 23: delete course");
+        try {
+            courseService.deleteCourseDirectly("IAA202");
+            System.out.println("(a) Deleted ?!");
+        } catch (DataIntegrityViolationException e) {
+            System.out.println("(a) Caught: " + e.getClass().getSimpleName());
+            System.out.println("    " + e.getMostSpecificCause().getMessage());
+        }
+
+        System.out.println("(b) Unlinked students: " + courseService.deleteCourse("IAA202"));
+        printList("Remaining courses", courseService.findAllOrderByCode());
+        printList("Courses of IA002", enrollmentService.getCoursesOfStudent("IA002"));
     }
 }
