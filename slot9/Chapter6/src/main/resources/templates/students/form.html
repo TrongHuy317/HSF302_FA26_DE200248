@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sinh viên')}"></head>
+<body>
+    <header th:replace="~{fragments/layout :: header}"></header>
+    
+    <h2 th:text="${student.id == null ? 'Thêm mới sinh viên' : 'Chỉnh sửa sinh viên'}"></h2>
+    
+    <form th:action="@{/students/save}" th:object="${student}" method="post">
+        <input type="hidden" th:field="*{id}" />
+        
+        <div style="margin-bottom: 10px;">
+            <label style="display:inline-block; width:100px;">Tên:</label>
+            <input type="text" th:field="*{name}" />
+            <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:red;"></span>
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+            <label style="display:inline-block; width:100px;">Email:</label>
+            <input type="email" th:field="*{email}" />
+            <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" style="color:red;"></span>
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+            <label style="display:inline-block; width:100px;">Tuổi:</label>
+            <input type="number" th:field="*{age}" />
+            <span th:if="${#fields.hasErrors('age')}" th:errors="*{age}" style="color:red;"></span>
+        </div>
+        
+        <button type="submit">Lưu</button>
+        <a th:href="@{/students}">Hủy</a>
+    </form>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

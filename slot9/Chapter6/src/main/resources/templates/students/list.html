@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Danh sách sinh viên')}"></head>
+<body>
+    <header th:replace="~{fragments/layout :: header}"></header>
+    
+    <h2>Danh sách sinh viên</h2>
+    <a th:href="@{/students/new}">Thêm mới sinh viên</a>
+    <table border="1" style="width:100%; margin-top: 10px; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên</th>
+                <th>Email</th>
+                <th>Tuổi</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="student : ${students}">
+                <td th:text="${student.id}"></td>
+                <td th:text="${student.name}"></td>
+                <td th:text="${student.email}"></td>
+                <td th:text="${student.age}"></td>
+                <td>
+                    <a th:href="@{/students/{id}(id=${student.id})}">Chi tiết</a> |
+                    <a th:href="@{/students/edit/{id}(id=${student.id})}">Sửa</a> |
+                    <a th:href="@{/students/delete/{id}(id=${student.id})}" onclick="return confirm('Bạn có chắc muốn xóa không?')">Xóa</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <title th:text="${title}">Title</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:fragment="header">
+        <h1>Quản lý sinh viên</h1>
+        <hr/>
+    </div>
+    <div th:fragment="footer">
+        <hr/>
+        <p>&copy; 2026 Student Management</p>
+    </div>
+</body>
+</html>
