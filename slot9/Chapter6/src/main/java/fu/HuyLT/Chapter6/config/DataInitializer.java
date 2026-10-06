@@ -13,9 +13,9 @@ public class DataInitializer {
     public CommandLineRunner initData(StudentRepository studentRepository) {
         return args -> {
             if (studentRepository.count() == 0) {
-                studentRepository.save(new Student("Nguyen Van A", "a@gmail.com", 20));
-                studentRepository.save(new Student("Tran Thi B", "b@gmail.com", 21));
-                studentRepository.save(new Student("Le Van C", "c@gmail.com", 22));
+                studentRepository.save(new Student("Nguyen Van A", "a@gmail.com", 20, "SE", 3.5));
+                studentRepository.save(new Student("Tran Thi B", "b@gmail.com", 21, "IA", 3.8));
+                studentRepository.save(new Student("Le Van C", "c@gmail.com", 22, "IS", 2.9));
             }
         };
     }

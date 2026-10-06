@@ -13,6 +13,8 @@
                 <th>Tên</th>
                 <th>Email</th>
                 <th>Tuổi</th>
+                <th>Chuyên ngành</th>
+                <th>GPA</th>
                 <th>Hành động</th>
             </tr>
         </thead>
@@ -22,6 +24,8 @@
                 <td th:text="${student.name}"></td>
                 <td th:text="${student.email}"></td>
                 <td th:text="${student.age}"></td>
+                <td th:text="${student.major}"></td>
+                <td th:text="${student.gpa}"></td>
                 <td>
                     <a th:href="@{/students/{id}(id=${student.id})}">Chi tiết</a> |
                     <a th:href="@{/students/edit/{id}(id=${student.id})}">Sửa</a> |

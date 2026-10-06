@@ -27,6 +27,18 @@
             <span th:if="${#fields.hasErrors('age')}" th:errors="*{age}" style="color:red;"></span>
         </div>
         
+        <div style="margin-bottom: 10px;">
+            <label style="display:inline-block; width:100px;">Chuyên ngành:</label>
+            <input type="text" th:field="*{major}" />
+            <span th:if="${#fields.hasErrors('major')}" th:errors="*{major}" style="color:red;"></span>
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+            <label style="display:inline-block; width:100px;">GPA:</label>
+            <input type="number" step="0.01" th:field="*{gpa}" />
+            <span th:if="${#fields.hasErrors('gpa')}" th:errors="*{gpa}" style="color:red;"></span>
+        </div>
+        
         <button type="submit">Lưu</button>
         <a th:href="@{/students}">Hủy</a>
     </form>
