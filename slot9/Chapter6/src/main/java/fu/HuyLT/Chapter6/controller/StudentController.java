@@ -26,12 +26,10 @@ public class StudentController {
 
     @GetMapping("/{id}")
     public String detailStudent(@PathVariable Long id, Model model) {
-        Student student = studentService.findById(id);
-        if (student == null) {
-            return "redirect:/students";
-        }
-        model.addAttribute("student", student);
-        return "students/detail";
+        return studentService.findById(id).map(student -> {
+            model.addAttribute("student", student);
+            return "students/detail";
+        }).orElse("redirect:/students");
     }
 
     @GetMapping("/new")
@@ -45,23 +43,26 @@ public class StudentController {
         if (bindingResult.hasErrors()) {
             return "students/form";
         }
-        studentService.save(student);
+        
+        if (student.getId() == null) {
+            studentService.create(student);
+        } else {
+            studentService.update(student.getId(), student);
+        }
         return "redirect:/students";
     }
 
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable Long id, Model model) {
-        Student student = studentService.findById(id);
-        if (student == null) {
-            return "redirect:/students";
-        }
-        model.addAttribute("student", student);
-        return "students/form";
+        return studentService.findById(id).map(student -> {
+            model.addAttribute("student", student);
+            return "students/form";
+        }).orElse("redirect:/students");
     }
 
     @GetMapping("/delete/{id}")
     public String deleteStudent(@PathVariable Long id) {
-        studentService.deleteById(id);
+        studentService.delete(id);
         return "redirect:/students";
     }
 }

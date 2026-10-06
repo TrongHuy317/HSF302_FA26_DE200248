@@ -3,11 +3,15 @@ package fu.HuyLT.Chapter6.service.impl;
 import fu.HuyLT.Chapter6.entity.Student;
 import fu.HuyLT.Chapter6.repository.StudentRepository;
 import fu.HuyLT.Chapter6.service.StudentService;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Transactional(readOnly = true)          // mặc định: mọi method chỉ đọc
 public class StudentServiceImpl implements StudentService {
 
     private final StudentRepository studentRepository;
@@ -18,21 +22,58 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public List<Student> findAll() {
-        return studentRepository.findAll();
+        return studentRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     @Override
-    public Student findById(Long id) {
-        return studentRepository.findById(id).orElse(null);
+    public Optional<Student> findById(Long id) {
+        return studentRepository.findById(id);
     }
 
     @Override
-    public Student save(Student student) {
+    @Transactional                      // ghi dữ liệu → bỏ readOnly
+    public Student create(Student student) {
+        student.setId(null);            // luôn INSERT, không bao giờ ghi đè bản ghi cũ
         return studentRepository.save(student);
     }
 
     @Override
-    public void deleteById(Long id) {
+    @Transactional
+    public boolean update(Long id, Student data) {
+        return studentRepository.findById(id)
+                .map(existing -> {
+                    existing.setName(data.getName());
+                    existing.setEmail(data.getEmail());
+                    existing.setAge(data.getAge());
+                    existing.setMajor(data.getMajor());
+                    existing.setGpa(data.getGpa());
+                    // Không cần gọi save(): entity đang "managed",
+                    // Hibernate tự sinh UPDATE khi transaction commit (dirty checking)
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    @Transactional
+    public boolean delete(Long id) {
+        if (!studentRepository.existsById(id)) {
+            return false;
+        }
         studentRepository.deleteById(id);
+        return true;
+    }
+
+    @Override
+    public boolean isEmailTaken(String email, Long excludeId) {
+        if (email == null || email.isBlank()) return false;
+        return excludeId == null
+                ? studentRepository.existsByEmailIgnoreCase(email.trim())
+                : studentRepository.existsByEmailIgnoreCaseAndIdNot(email.trim(), excludeId);
+    }
+
+    @Override
+    public List<String> getMajors() {
+        return List.of("CNTT", "KTPM", "HTTT", "ATTT", "MMT");
     }
 }
