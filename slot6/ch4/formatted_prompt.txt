@@ -1,0 +1,890 @@
+{"step_index":479,"source":"USER_EXPLICIT","type":"USER_INPUT","status":"DONE","created_at":"2026-10-06T07:13:46Z","content":"<USER_REQUEST>
+\"## TODO 20 — Đăng ký khóa học (`enroll`)
+
+**Service — `EnrollmentService`**
+```java
+void enroll(String studentCode, String courseCode);
+```
+
+**Service — `EnrollmentServiceImpl`**
+```java
+@Override
+@Transactional
+public void enroll(String studentCode, String courseCode) {
+    Student s = getStudent(studentCode);
+    Course c = getCourse(courseCode);
+    checkAndEnroll(s, c);
+}
+
+/** Kiểm tra quy tắc nghiệp vụ rồi mới đăng ký. Dùng lại ở TODO 22. */
+private void checkAndEnroll(Student s, Course c) {
+    if (!s.isActive()) {
+        throw new IllegalStateException(\"Student \" + s.getStudentCode() + \" is inactive\");
+    }
+    if (s.getCourses().contains(c)) {
+        throw new IllegalStateException(\"Student \" + s.getStudentCode()
+                + \" already enrolled in \" + c.getCode());
+    }
+    int enrolled = c.getStudents().size();
+    if (enrolled >= c.getCapacity()) {
+        throw new IllegalStateException(\"Course \" + c.getCode()
+                + \" is full (\" + enrolled + \"/\" + c.getCapacity() + \")\");
+    }
+    s.enroll(c);          // helper 2 chiều → dirty checking INSERT student_courses khi commit
+}
+```
+
+**Runner**
+```java
+private void todo20() {
+    title(\"TODO 20: enroll with business rules\");
+    attempt(\"enroll IA003 -> MKT101\", () -> enrollmentService.enroll(\"IA003\", \"MKT101\"));
+    attempt(\"enroll SE001 -> PRJ301\", () -> enrollmentService.enroll(\"SE001\", \"PRJ301\"));
+    attempt(\"enroll SE004 -> AIL303\", () -> enrollmentService.enroll(\"SE004\", \"AIL303\"));
+    attempt(\"enroll SE003 -> HSF302\", () -> enrollmentService.enroll(\"SE003\", \"HSF302\"));
+    attempt(\"enroll XX999 -> HSF302\", () -> enrollmentService.enroll(\"XX999\", \"HSF302\"));
+    printList(\"Courses of IA003\", enrollmentService.getCoursesOfStudent(\"IA003\"));
+    System.out.println(\"Students of MKT101: \" + enrollmentService.countStudentsInCourse(\"MKT101\"));
+}
+```
+
+**Giải thích**
+- Không gọi `save()`: `s` là entity **managed** trong transaction ⇒ khi commit, Hibernate so sánh `s.courses` với snapshot ⇒ sinh `insert into student_courses (student_id, course_id) values (?, ?)`.
+- `s.getCourses().contains(c)` hoạt động đúng nhờ `Course.equals/hashCode` theo `code`.
+- Nếu **quên** kiểm tra \"đã đăng ký\", PK ghép `(student_id, course_id)` vẫn chặn ở DB — nhưng lúc đó lỗi là `DataIntegrityViolationException` khó hiểu. Kiểm tra ở Service để báo lỗi rõ ràng.
+
+**Kết quả mong đợi**
+```
+   [OK]   enroll IA003 -> MKT101
+   [FAIL] enroll SE001 -> PRJ301 -> Student SE001 already enrolled in PRJ301
+   [FAIL] enroll SE004 -> AIL303 -> Course AIL303 is full (4/4)
+   [FAIL] enroll SE003 -> HSF302 -> Student SE003 is inactive
+   [FAIL] enroll XX999 -> HSF302 -> Student not found: XX999
+-- Courses of IA003:  MKT101
+Students of MKT101: 1
+```
+
+**📌 Commit TODO 20**
+```bash
+git add .
+git commit -m \"feat(enrollment): enroll student with business rules\" -m \"Refs: EX2 TODO 20\"
+```
+
+---
+
+## TODO 21 — Huỷ đăng ký (`unenroll`)
+
+**Service — `EnrollmentService` / `EnrollmentServiceImpl`**
+```java
+void unenroll(String studentCode, String courseCode);
+```
+```java
+@Override
+@Transactional
+public void unenroll(String studentCode, String courseCode) {
+    Student s = getStudent(studentCode);
+    Course c = getCourse(courseCode);
+    if (!s.getCourses().contains(c)) {
+        throw new IllegalStateException(\"Student \" + studentCode + \" is not enrolled in \" + courseCode);
+    }
+    s.unenroll(c);        // chỉ DELETE 1 dòng trong student_courses
+}
+```
+
+**Runner**
+```java
+private void todo21() {
+    title(\"TODO 21: unenroll\");
+    attempt(\"unenroll AI002 <- AIL303\", () -> enrollmentService.unenroll(\"AI002\", \"AIL303\"));
+    attempt(\"unenroll IA003 <- PRJ301\", () -> enrollmentService.unenroll(\"IA003\", \"PRJ301\"));
+    attempt(\"enroll   SE004 -> AIL303\", () -> enrollmentService.enroll(\"SE004\", \"AIL303\"));
+    printList(\"Students of AIL303\", enrollmentService.getStudentsOfCourse(\"AIL303\"));
+    printList(\"Courses of AI002\", enrollmentService.getCoursesOfStudent(\"AI002\"));
+    System.out.println(\"AI002 still exists? \" + studentService.findByStudentCode(\"AI002\").isPresent());
+    System.out.println(\"Total courses: \" + courseService.count());
+}
+```
+
+**Giải thích**
+- `s.unenroll(c)` ⇒ `delete from student_courses where student_id = ? and course_id = ?`. Bản ghi `students` và `courses` **không bị ảnh hưởng**.
+- Nếu chỉ gọi `c.getStudents().remove(s)` (inverse side) ⇒ **không có câu DELETE nào** — lỗi logic rất hay gặp. Thử comment dòng `courses.remove(c)` trong helper để thấy.
+
+**Kết quả mong đợi**
+```
+   [OK]   unenroll AI002 <- AIL303
+   [FAIL] unenroll IA003 <- PRJ301 -> Student IA003 is not enrolled in PRJ301
+   [OK]   enroll   SE004 -> AIL303
+-- Students of AIL303: Nguyen Thi Mai, Pham Thi Dung, Tran Thi Binh, Vo Thi Hoa
+-- Courses of AI002:  (trống)  -> 0 record(s)
+AI002 still exists? true
+Total courses: 6
+```
+
+**📌 Commit TODO 21**
+```bash
+git add .
+git commit -m \"feat(enrollment): unenroll student from course\" -m \"Refs: EX2 TODO 21\"
+```
+
+---
+
+## TODO 22 — Đổi lớp trong 1 transaction (rollback)
+
+**Service — `EnrollmentService` / `EnrollmentServiceImpl`**
+```java
+void switchCourse(String studentCode, String fromCode, String toCode);
+```
+```java
+@Override
+@Transactional
+public void switchCourse(String studentCode, String fromCode, String toCode) {
+    if (fromCode == null || fromCode.equals(toCode)) {
+        throw new IllegalArgumentException(\"fromCode and toCode must be different\");
+    }
+    Student s = getStudent(studentCode);
+    Course from = getCourse(fromCode);
+    Course to = getCourse(toCode);
+    if (!s.getCourses().contains(from)) {
+        throw new IllegalStateException(\"Student \" + studentCode + \" is not enrolled in \" + fromCode);
+    }
+    s.unenroll(from);          // (1) gỡ lớp cũ
+    checkAndEnroll(s, to);     // (2) đăng ký lớp mới — lỗi ⇒ RuntimeException ⇒ rollback cả (1)
+}
+```
+
+**Runner**
+```java
+private void todo22() {
+    title(\"TODO 22: switch course in one transaction\");
+    attempt(\"switch SE001 SWP391 -> MKT101\",
+            () -> enrollmentService.switchCourse(\"SE001\", \"SWP391\", \"MKT101\"));
+    printList(\"Courses of SE001\", enrollmentService.getCoursesOfStudent(\"SE001\"));
+
+    attempt(\"switch SE001 PRJ301 -> AIL303\",
+            () -> enrollmentService.switchCourse(\"SE001\", \"PRJ301\", \"AIL303\"));
+    printList(\"Courses of SE001 (after rollback)\", enrollmentService.getCoursesOfStudent(\"SE001\"));
+}
+```
+
+**Giải thích**
+- Hai bước (1) và (2) nằm trong **cùng một** transaction. Bước (2) ném `IllegalStateException` ⇒ `TransactionInterceptor` gọi **rollback** ⇒ việc gỡ `PRJ301` ở bước (1) cũng bị huỷ, persistence context bị bỏ ⇒ `SE001` vẫn còn `PRJ301`.
+- Nếu tách thành 2 lời gọi `unenroll()` rồi `enroll()` từ Runner (2 transaction), lần 2 thất bại thì sinh viên đã **mất** lớp cũ — đó là lý do nghiệp vụ nhiều bước phải đặt trong **một method Service**.
+- Mặc định Spring chỉ rollback với `RuntimeException`/`Error`; checked exception phải khai báo `@Transactional(rollbackFor = Exception.class)`.
+
+**Kết quả mong đợi**
+```
+   [OK]   switch SE001 SWP391 -> MKT101
+-- Courses of SE001: HSF302, MKT101, PRJ301
+   [FAIL] switch SE001 PRJ301 -> AIL303 -> Course AIL303 is full (4/4)
+-- Courses of SE001 (after rollback): HSF302, MKT101, PRJ301
+```
+
+**📌 Commit TODO 22**
+```bash
+git add .
+git commit -m \"feat(enrollment): switch course in one transaction\" \\
+           -m \"Gỡ lớp cũ và đăng ký lớp mới trong cùng transaction, lỗi thì rollback\" \\
+           -m \"Refs: EX2 TODO 22\"
+```
+
+---
+
+## TODO 23 — Xoá khóa học an toàn
+
+**Mục tiêu:** Hiểu vì sao xoá entity ở **inverse side** gây lỗi FK và cách xử lý đúng.
+
+**Service — `CourseService` / `CourseServiceImpl`**
+```java
+void deleteCourseDirectly(String code);   // cách SAI — để quan sát lỗi
+int deleteCourse(String code);            // cách ĐÚNG
+```
+```java
+@Override
+@Transactional
+public void deleteCourseDirectly(String code) {
+    Course c = getCourse(code);
+    courseRepository.delete(c);
+    courseRepository.flush();          // ép Hibernate chạy DELETE ngay để thấy lỗi
+}
+
+@Override
+@Transactional
+public int deleteCourse(String code) {
+    Course c = getCourse(code);
+    // copy ra Set mới: unenroll() sẽ sửa c.getStudents() → tránh ConcurrentModificationException
+    Set<Student> students = new HashSet<>(c.getStudents());
+    students.forEach(s -> s.unenroll(c));   // gỡ từ OWNING side → DELETE các dòng student_courses
+    courseRepository.delete(c);             // sau đó mới DELETE courses
+    return students.size();
+}
+
+private Course getCourse(String code) {
+    return courseRepository.findByCode(code)
+            .orElseThrow(() -> new IllegalArgumentException(\"Course not found: \" + code));
+}
+```
+> Import: `com.hsf302.ch4.pojo.Student`, `java.util.HashSet`, `java.util.Set`.
+
+**Runner**
+```java
+private void todo23() {
+    title(\"TODO 23: delete course\");
+    try {
+        courseService.deleteCourseDirectly(\"IAA202\");
+        System.out.println(\"(a) Deleted ?!\");
+    } catch (DataIntegrityViolationException e) {
+        System.out.println(\"(a) Caught: \" + e.getClass().getSimpleName());
+        System.out.println(\"    \" + e.getMostSpecificCause().getMessage());
+    }
+
+    System.out.println(\"(b) Unlinked students: \" + courseService.deleteCourse(\"IAA202\"));
+    printList(\"Remaining courses\", courseService.findAllOrderByCode());
+    printList(\"Courses of IA002\", enrollmentService.getCoursesOfStudent(\"IA002\"));
+}
+```
+> Import: `org.springframework.dao.DataIntegrityViolationException`.
+
+**Giải thích**
+- `Course.students` là **inverse side** ⇒ khi xoá `Course`, Hibernate **không** xoá các dòng `student_courses` trỏ tới nó ⇒ SQL Server báo: *The DELETE statement conflicted with the REFERENCE constraint \"FK…\". The conflict occurred in database \"HSF302_CH4\", table \"dbo.student_courses\", column 'course_id'.* Spring dịch lỗi thành `DataIntegrityViolationException` và transaction bị rollback.
+- Ngược lại, khi xoá `Student` (**owning side**), Hibernate **tự** xoá các dòng `student_courses` của sinh viên đó trước ⇒ không lỗi. (Vì vậy TODO 23 của Exercise 1 — xoá sinh viên inactive — vẫn chạy được sau khi thêm mapping N–N.)
+- Cách đúng: gỡ liên kết ở owning side cho **từng** sinh viên rồi mới xoá. Khi flush, Hibernate thực hiện các thao tác collection (DELETE `student_courses`) **trước** các câu DELETE entity ⇒ không vi phạm FK.
+- Tuyệt đối **không** \"sửa\" bằng `cascade = CascadeType.REMOVE` trên `Course.students` — sẽ xoá luôn sinh viên!
+
+**Kết quả mong đợi**
+```
+(a) Caught: DataIntegrityViolationException
+    The DELETE statement conflicted with the REFERENCE constraint \"FK...\" ... table \"dbo.student_courses\", column 'course_id'.
+(b) Unlinked students: 2
+-- Remaining courses: AIL303, HSF302, MKT101, PRJ301, SWP391   -> 5 record(s)
+-- Courses of IA002: HSF302
+```
+
+**📌 Commit TODO 23**
+```bash
+git add .
+git commit -m \"feat(course): delete course safely from owning side\" \\
+           -m \"Xoá trực tiếp từ inverse side vi phạm FK student_courses, phải gỡ liên kết trước\" \\
+           -m \"Refs: EX2 TODO 23\"
+```
+
+---
+
+## TODO 24 — Xoá hàng loạt trên bảng trung gian
+
+**Repository — `StudentRepository`**
+```java
+@Modifying(clearAutomatically = true, flushAutomatically = true)
+@Query(value = \"DELETE FROM student_courses \" +
+               \"WHERE student_id IN (SELECT id FROM students WHERE active = 0)\",
+       nativeQuery = true)
+int deleteEnrollmentsOfInactiveStudents();
+```
+
+**Service — `EnrollmentService` / `EnrollmentServiceImpl`**
+```java
+int removeEnrollmentsOfInactiveStudents();
+```
+```java
+@Override
+@Transactional
+public int removeEnrollmentsOfInactiveStudents() {
+    return studentRepository.deleteEnrollmentsOfInactiveStudents();
+}
+```
+
+**Runner**
+```java
+private void todo24() {
+    title(\"TODO 24: bulk delete enrollments of inactive students\");
+    System.out.println(\"Deleted rows: \" + enrollmentService.removeEnrollmentsOfInactiveStudents());
+    printCourseStats();
+    printList(\"Students without courses\", enrollmentService.findStudentsWithoutCourses());
+}
+```
+
+**Giải thích**
+- `student_courses` **không có entity** ⇒ JPQL không `DELETE` trực tiếp được ⇒ dùng **native SQL**. (Cách JPA thuần: nạp từng sinh viên inactive rồi `getCourses().clear()` — N câu SQL; native chỉ 1 câu.)
+- `active = 0`: cột `bit` của SQL Server (native SQL dùng giá trị của DB, không dùng `false` của JPQL).
+- `@Modifying` bắt buộc cho câu lệnh thay đổi dữ liệu; `clearAutomatically = true` xoá cache cấp 1 để các lần đọc sau không thấy collection cũ; `flushAutomatically = true` đẩy các thay đổi chưa flush xuống DB **trước** khi chạy bulk DELETE.
+- Tại thời điểm này: Cuong (inactive) còn PRJ301; Giang (inactive) đã mất IAA202 ở TODO 23 ⇒ chỉ **1** dòng bị xoá.
+
+**Kết quả mong đợi**
+```
+Deleted rows: 1
+   AIL303 | Machine Learning                         | 4/4 (free 0) | avg GPA 3.700
+   HSF302 | Hibernate & Spring Framework             | 5/6 (free 1) | avg GPA 3.440
+   MKT101 | Marketing Principles                     | 2/4 (free 2) | avg GPA 2.700
+   PRJ301 | Java Web Application Development         | 3/5 (free 2) | avg GPA 3.633
+   SWP391 | Software Development Project             | 2/4 (free 2) | avg GPA 3.750
+-- Students without courses: Dang Van Giang, Hoang Van Em, Le Van Cuong
+```
+
+**Kiểm tra trong SSMS:** `SELECT COUNT(*) FROM student_courses;` → **16**.
+
+**📌 Commit TODO 24**
+```bash
+git add .
+git commit -m \"feat(enrollment): remove enrollments of inactive students\" -m \"Refs: EX2 TODO 24\"
+```
+
+Kiểm tra lịch sử:
+```bash
+git log --oneline exercise2
+```
+
+---
+
+# Tổng hợp code hoàn chỉnh
+
+### `CourseRepository.java`
+
+```java
+package com.hsf302.ch4.repository;
+
+import com.hsf302.ch4.dto.CourseEnrollmentCount;
+import com.hsf302.ch4.dto.CourseStatDTO;
+import com.hsf302.ch4.pojo.Course;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface CourseRepository extends JpaRepository<Course, Long> {
+
+    // ===== Part C — Derived query =====
+    Optional<Course> findByCode(String code);                                            // TODO 7, 8
+    List<Course> findBySemesterOrderByCodeAsc(String semester);                          // TODO 8
+    long countBySemester(String semester);                                               // TODO 8
+    List<Course> findByStudents_StudentCodeOrderByCodeAsc(String studentCode);           // TODO 10
+    List<Course> findByStudents_Department_CodeOrderByCodeAsc(String deptCode);          // TODO 10
+    List<Course> findDistinctByStudents_Department_CodeOrderByCodeAsc(String deptCode);  // TODO 10
+    List<Course> findByStudentsIsEmpty();                                                // TODO 11
+
+    // ===== Part D — Custom query =====
+    @Query(\"SELECT new com.hsf302.ch4.dto.CourseStatDTO(c.code, c.name, c.capacity, COUNT(s), AVG(s.gpa)) \" +
+           \"FROM Course c LEFT JOIN c.students s \" +
+           \"GROUP BY c.code, c.name, c.capacity ORDER BY c.code\")
+    List<CourseStatDTO> getCourseStats();                                                // TODO 13, 24
+
+    @Query(\"SELECT c FROM Course c WHERE SIZE(c.students) >= c.capacity ORDER BY c.code\")
+    List<Course> findFullCourses();                                                      // TODO 15
+
+    @EntityGraph(attributePaths = \"students\")
+    Optional<Course> findWithStudentsByCode(String code);                                // TODO 16
+
+    @Query(value = \"SELECT TOP (:n) c.code AS code, c.name AS name, COUNT(sc.student_id) AS enrolled \" +
+                   \"FROM courses c LEFT JOIN student_courses sc ON sc.course_id = c.id \" +
+                   \"GROUP BY c.code, c.name \" +
+                   \"ORDER BY enrolled DESC, c.code\",
+           nativeQuery = true)
+    List<CourseEnrollmentCount> findTopEnrolledNative(@Param(\"n\") int n);                // TODO 17
+}
+```
+
+### `StudentRepository.java` — phần bổ sung cho Exercise 2
+
+```java
+// ===== Exercise 2 — Part C =====
+List<Student> findByCourses_CodeOrderByFullNameAsc(String courseCode);                  // TODO 9
+long countByCourses_Code(String courseCode);                                             // TODO 9, 20
+List<Student> findByCourses_CodeAndActiveTrueOrderByFullNameAsc(String courseCode);      // TODO 9
+List<Student> findByCoursesIsEmptyOrderByFullNameAsc();                                  // TODO 11, 24
+boolean existsByStudentCodeAndCourses_Code(String studentCode, String courseCode);       // TODO 11
+
+// ===== Exercise 2 — Part D =====
+@Query(\"SELECT s FROM Student s JOIN s.courses c \" +
+       \"WHERE c.code = :code AND s.gpa >= :minGpa ORDER BY s.gpa DESC\")
+List<Student> findGoodStudentsInCourse(@Param(\"code\") String courseCode,
+                                       @Param(\"minGpa\") double minGpa);                  // TODO 12
+
+@Query(\"SELECT new com.hsf302.ch4.dto.StudentCreditDTO(s.studentCode, s.fullName, COUNT(c), SUM(c.credits)) \" +
+       \"FROM Student s JOIN s.courses c \" +
+       \"GROUP BY s.studentCode, s.fullName \" +
+       \"HAVING SUM(c.credits) >= :minCredits \" +
+       \"ORDER BY SUM(c.credits) DESC, s.fullName\")
+List<StudentCreditDTO> getCreditSummary(@Param(\"minCredits\") long minCredits);          // TODO 14
+
+@Query(\"SELECT s FROM Student s WHERE SIZE(s.courses) > :n ORDER BY s.fullName\")
+List<Student> findStudentsWithMoreThanNCourses(@Param(\"n\") int n);                      // TODO 15
+
+@Query(\"SELECT s FROM Student s LEFT JOIN FETCH s.courses WHERE s.studentCode = :code\")
+Optional<Student> findByStudentCodeWithCourses(@Param(\"code\") String studentCode);      // TODO 16
+
+@Query(\"SELECT s.studentCode AS studentCode, s.fullName AS fullName, \" +
+       \"       c.code AS courseCode, c.name AS courseName, c.credits AS credits \" +
+       \"FROM Student s JOIN s.department d JOIN s.courses c \" +
+       \"WHERE d.code = :deptCode \" +
+       \"ORDER BY s.studentCode, c.code\")
+List<EnrollmentView> findEnrollmentsOfDepartment(@Param(\"deptCode\") String deptCode);   // TODO 18
+
+@Query(value = \"SELECT s FROM Student s JOIN s.courses c WHERE c.code = :code\",
+       countQuery = \"SELECT COUNT(s) FROM Student s JOIN s.courses c WHERE c.code = :code\")
+Page<Student> findPageByCourseCode(@Param(\"code\") String courseCode, Pageable pageable); // TODO 19
+
+// ===== Exercise 2 — Part E =====
+@Modifying(clearAutomatically = true, flushAutomatically = true)
+@Query(value = \"DELETE FROM student_courses \" +
+               \"WHERE student_id IN (SELECT id FROM students WHERE active = 0)\",
+       nativeQuery = true)
+int deleteEnrollmentsOfInactiveStudents();                                               // TODO 24
+```
+> Import thêm: `com.hsf302.ch4.dto.StudentCreditDTO`, `com.hsf302.ch4.dto.EnrollmentView`.
+
+### `CourseService.java`
+
+```java
+package com.hsf302.ch4.service;
+
+import com.hsf302.ch4.dto.CourseEnrollmentCount;
+import com.hsf302.ch4.dto.CourseStatDTO;
+import com.hsf302.ch4.pojo.Course;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface CourseService {
+    long count();                                                        // TODO 6, 21
+    List<Course> findAllOrderByCode();                                   // TODO 6, 23
+    Optional<Course> findById(Long id);                                  // TODO 6
+    Optional<Course> findByCode(String code);                            // TODO 8
+    List<Course> findBySemester(String semester);                        // TODO 8
+    long countBySemester(String semester);                               // TODO 8
+    List<Course> findCoursesOfStudent(String studentCode);               // TODO 10
+    List<Course> findCoursesOfDepartment(String deptCode, boolean distinct); // TODO 10
+    List<Course> findCoursesWithoutStudents();                           // TODO 11
+    List<CourseStatDTO> getStatistics();                                 // TODO 13, 24
+    List<Course> findFullCourses();                                      // TODO 15
+    Course getWithStudents(String code);                                 // TODO 16
+    List<CourseEnrollmentCount> findTopEnrolled(int n);                  // TODO 17
+    void deleteCourseDirectly(String code);                              // TODO 23a
+    int deleteCourse(String code);                                       // TODO 23b
+}
+```
+
+### `CourseServiceImpl.java`
+
+```java
+package com.hsf302.ch4.service;
+
+import com.hsf302.ch4.dto.CourseEnrollmentCount;
+import com.hsf302.ch4.dto.CourseStatDTO;
+import com.hsf302.ch4.pojo.Course;
+import com.hsf302.ch4.pojo.Student;
+import com.hsf302.ch4.repository.CourseRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class CourseServiceImpl implements CourseService {
+
+    private final CourseRepository courseRepository;
+
+    @Override
+    public long count() {
+        return courseRepository.count();
+    }
+
+    @Override
+    public List<Course> findAllOrderByCode() {
+        return courseRepository.findAll(Sort.by(\"code\"));
+    }
+
+    @Override
+    public Optional<Course> findById(Long id) {
+        return courseRepository.findById(id);
+    }
+
+    @Override
+    public Optional<Course> findByCode(String code) {
+        return courseRepository.findByCode(code);
+    }
+
+    @Override
+    public List<Course> findBySemester(String semester) {
+        return courseRepository.findBySemesterOrderByCodeAsc(semester);
+    }
+
+    @Override
+    public long countBySemester(String semester) {
+        return courseRepository.countBySemester(semester);
+    }
+
+    @Override
+    public List<Course> findCoursesOfStudent(String studentCode) {
+        return courseRepository.findByStudents_StudentCodeOrderByCodeAsc(studentCode);
+    }
+
+    @Override
+    public List<Course> findCoursesOfDepartment(String deptCode, boolean distinct) {
+        return distinct
+                ? courseRepository.findDistinctByStudents_Department_CodeOrderByCodeAsc(deptCode)
+                : courseRepository.findByStudents_Department_CodeOrderByCodeAsc(deptCode);
+    }
+
+    @Override
+    public List<Course> findCoursesWithoutStudents() {
+        return courseRepository.findByStudentsIsEmpty();
+    }
+
+    @Override
+    public List<CourseStatDTO> getStatistics() {
+        return courseRepository.getCourseStats();
+    }
+
+    @Override
+    public List<Course> findFullCourses() {
+        return courseRepository.findFullCourses();
+    }
+
+    @Override
+    public Course getWithStudents(String code) {
+        return courseRepository.findWithStudentsByCode(code)
+                .orElseThrow(() -> new IllegalArgumentException(\"Course not found: \" + code));
+    }
+
+    @Override
+    public List<CourseEnrollmentCount> findTopEnrolled(int n) {
+        if (n <= 0) {
+            throw new IllegalArgumentException(\"n must be > 0\");
+        }
+        return courseRepository.findTopEnrolledNative(n);
+    }
+
+    // ===== Part E =====
+    @Override
+    @Transactional
+    public void deleteCourseDirectly(String code) {
+        Course c = getCourse(code);
+        courseRepository.delete(c);
+        courseRepository.flush();
+    }
+
+    @Override
+    @Transactional
+    public int deleteCourse(String code) {
+        Course c = getCourse(code);
+        Set<Student> students = new HashSet<>(c.getStudents());
+        students.forEach(s -> s.unenroll(c));
+        courseRepository.delete(c);
+        return students.size();
+    }
+
+    private Course getCourse(String code) {
+        return courseRepository.findByCode(code)
+                .orElseThrow(() -> new IllegalArgumentException(\"Course not found: \" + code));
+    }
+}
+```
+
+### `EnrollmentService.java`
+
+```java
+package com.hsf302.ch4.service;
+
+import com.hsf302.ch4.dto.EnrollmentView;
+import com.hsf302.ch4.dto.StudentCreditDTO;
+import com.hsf302.ch4.pojo.Course;
+import com.hsf302.ch4.pojo.Student;
+import org.springframework.data.domain.Page;
+
+import java.util.List;
+
+public interface EnrollmentService {
+
+    // ===== Part B =====
+    List<Course> getCoursesOfStudent(String studentCode);                                  // TODO 7
+    List<Student> getStudentsOfCourse(String courseCode);                                  // TODO 7
+
+    // ===== Part C =====
+    List<Student> findStudentsInCourse(String courseCode);                                 // TODO 9
+    long countStudentsInCourse(String courseCode);                                         // TODO 9, 20
+    List<Student> findActiveStudentsInCourse(String courseCode);                           // TODO 9
+    List<Student> findStudentsWithoutCourses();                                            // TODO 11, 24
+    boolean isEnrolled(String studentCode, String courseCode);                             // TODO 11
+
+    // ===== Part D =====
+    List<Student> findGoodStudentsInCourse(String courseCode, double minGpa);              // TODO 12
+    List<StudentCreditDTO> getCreditSummary(int minCredits);                               // TODO 14
+    List<Student> findStudentsWithMoreThan(int n);                                         // TODO 15
+    Student getStudentWithCourses(String studentCode);                                     // TODO 16
+    List<EnrollmentView> getEnrollmentsOfDepartment(String deptCode);                      // TODO 18
+    Page<Student> findStudentsInCoursePage(String courseCode, int pageIndex, int size);    // TODO 19
+
+    // ===== Bonus =====
+    List<Student> search(String courseCode, String semester, String deptCode, Double minGpa); // TODO 25
+
+    // ===== Part E =====
+    void enroll(String studentCode, String courseCode);                                    // TODO 20
+    void unenroll(String studentCode, String courseCode);                                  // TODO 21
+    void switchCourse(String studentCode, String fromCode, String toCode);                 // TODO 22
+    int removeEnrollmentsOfInactiveStudents();                                             // TODO 24
+}
+```
+
+### `EnrollmentServiceImpl.java`
+
+```java
+package com.hsf302.ch4.service;
+
+import com.hsf302.ch4.dto.EnrollmentView;
+import com.hsf302.ch4.dto.StudentCreditDTO;
+import com.hsf302.ch4.pojo.Course;
+import com.hsf302.ch4.pojo.Student;
+import com.hsf302.ch4.repository.CourseRepository;
+import com.hsf302.ch4.repository.StudentRepository;
+import com.hsf302.ch4.specification.EnrollmentSpecs;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Comparator;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class EnrollmentServiceImpl implements EnrollmentService {
+
+    private final StudentRepository studentRepository;
+    private final CourseRepository courseRepository;
+
+    // ===== Part B =====
+    @Override
+    public List<Course> getCoursesOfStudent(String studentCode) {
+        Student s = getStudent(studentCode);
+        return s.getCourses().stream()
+                .sorted(Comparator.comparing(Course::getCode))
+                .toList();
+    }
+
+    @Override
+    public List<Student> getStudentsOfCourse(String courseCode) {
+        Course c = getCourse(courseCode);
+        return c.getStudents().stream()
+                .sorted(Comparator.comparing(Student::getFullName))
+                .toList();
+    }
+
+    // ===== Part C =====
+    @Override
+    public List<Student> findStudentsInCourse(String courseCode) {
+        return studentRepository.findByCourses_CodeOrderByFullNameAsc(courseCode);
+    }
+
+    @Override
+    public long countStudentsInCourse(String courseCode) {
+        return studentRepository.countByCourses_Code(courseCode);
+    }
+
+    @Override
+    public List<Student> findActiveStudentsInCourse(String courseCode) {
+        return studentRepository.findByCourses_CodeAndActiveTrueOrderByFullNameAsc(courseCode);
+    }
+
+    @Override
+    public List<Student> findStudentsWithoutCourses() {
+        return studentRepository.findByCoursesIsEmptyOrderByFullNameAsc();
+    }
+
+    @Override
+    public boolean isEnrolled(String studentCode, String courseCode) {
+        return studentRepository.existsByStudentCodeAndCourses_Code(studentCode, courseCode);
+    }
+
+    // ===== Part D =====
+    @Override
+    public List<Student> findGoodStudentsInCourse(String courseCode, double minGpa) {
+        if (minGpa < 0 || minGpa > 4) {
+            throw new IllegalArgumentException(\"minGpa must be in [0, 4]\");
+        }
+        return studentRepository.findGoodStudentsInCourse(courseCode, minGpa);
+    }
+
+    @Override
+    public List<StudentCreditDTO> getCreditSummary(int minCredits) {
+        if (minCredits < 0) {
+            throw new IllegalArgumentException(\"minCredits must be >= 0\");
+        }
+        return studentRepository.getCreditSummary(minCredits);
+    }
+
+    @Override
+    public List<Student> findStudentsWithMoreThan(int n) {
+        if (n < 0) {
+            throw new IllegalArgumentException(\"n must be >= 0\");
+        }
+        return studentRepository.findStudentsWithMoreThanNCourses(n);
+    }
+
+    @Override
+    public Student getStudentWithCourses(String studentCode) {
+        return studentRepository.findByStudentCodeWithCourses(studentCode)
+                .orElseThrow(() -> new IllegalArgumentException(\"Student not found: \" + studentCode));
+    }
+
+    @Override
+    public List<EnrollmentView> getEnrollmentsOfDepartment(String deptCode) {
+        return studentRepository.findEnrollmentsOfDepartment(deptCode);
+    }
+
+    @Override
+    public Page<Student> findStudentsInCoursePage(String courseCode, int pageIndex, int size) {
+        if (pageIndex < 0 || size <= 0) {
+            throw new IllegalArgumentException(\"pageIndex must be >= 0 and size must be > 0\");
+        }
+        Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(\"fullName\"));
+        return studentRepository.findPageByCourseCode(courseCode, pageable);
+    }
+
+    // ===== Bonus =====
+    @Override
+    public List<Student> search(String courseCode, String semester, String deptCode, Double minGpa) {
+        Specification<Student> spec = Specification.where(EnrollmentSpecs.enrolledIn(courseCode))
+                .and(EnrollmentSpecs.inSemester(semester))
+                .and(EnrollmentSpecs.inDepartment(deptCode))
+                .and(EnrollmentSpecs.gpaAtLeast(minGpa));
+        return studentRepository.findAll(spec, Sort.by(\"fullName\"));
+    }
+
+    // ===== Part E — ghi dữ liệu =====
+    @Override
+    @Transactional
+    public void enroll(String studentCode, String courseCode) {
+        Student s = getStudent(studentCode);
+        Course c = getCourse(courseCode);
+        checkAndEnroll(s, c);
+    }
+
+    @Override
+    @Transactional
+    public void unenroll(String studentCode, String courseCode) {
+        Student s = getStudent(studentCode);
+        Course c = getCourse(courseCode);
+        if (!s.getCourses().contains(c)) {
+            throw new IllegalStateException(\"Student \" + studentCode + \" is not enrolled in \" + courseCode);
+        }
+        s.unenroll(c);
+    }
+
+    @Override
+    @Transactional
+    public void switchCourse(String studentCode, String fromCode, String toCode) {
+        if (fromCode == null || fromCode.equals(toCode)) {
+            throw new IllegalArgumentException(\"fromCode and toCode must be different\");
+        }
+        Student s = getStudent(studentCode);
+        Course from = getCourse(fromCode);
+        Course to = getCourse(toCode);
+        if (!s.getCourses().contains(from)) {
+            throw new IllegalStateException(\"Student \" + studentCode + \" is not enrolled in \" + fromCode);
+        }
+        s.unenroll(from);
+        checkAndEnroll(s, to);
+    }
+
+    @Override
+    @Transactional
+    public int removeEnrollmentsOfInactiveStudents() {
+        return studentRepository.deleteEnrollmentsOfInactiveStudents();
+    }
+
+    // ===== helpers =====
+    private void checkAndEnroll(Student s, Course c) {
+        if (!s.isActive()) {
+            throw new IllegalStateException(\"Student \" + s.getStudentCode() + \" is inactive\");
+        }
+        if (s.getCourses().contains(c)) {
+            throw new IllegalStateException(\"Student \" + s.getStudentCode()
+                    + \" already enrolled in \" + c.getCode());
+        }
+        int enrolled = c.getStudents().size();
+        if (enrolled >= c.getCapacity()) {
+            throw new IllegalStateException(\"Course \" + c.getCode()
+                    + \" is full (\" + enrolled + \"/\" + c.getCapacity() + \")\");
+        }
+        s.enroll(c);
+    }
+
+    private Student getStudent(String studentCode) {
+        if (studentCode == null || studentCode.isBlank()) {
+            throw new IllegalArgumentException(\"Student code must not be blank\");
+        }
+        return studentRepository.findByStudentCode(studentCode)
+                .orElseThrow(() -> new IllegalArgumentException(\"Student not found: \" + studentCode));
+    }
+
+    private Course getCourse(String courseCode) {
+        if (courseCode == null || courseCode.isBlank()) {
+            throw new IllegalArgumentException(\"Course code must not be blank\");
+        }
+        return courseRepository.findByCode(courseCode)
+                .orElseThrow(() -> new IllegalArgumentException(\"Course not found: \" + courseCode));
+    }
+}
+```
+
+### Imports cần cho `Exercise2Runner`
+
+```java
+import com.hsf302.ch4.pojo.Course;
+import com.hsf302.ch4.pojo.Student;
+import com.hsf302.ch4.service.CourseService;
+import com.hsf302.ch4.service.EnrollmentService;
+import com.hsf302.ch4.service.StudentService;
+import org.hibernate.LazyInitializationException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+```
+
+---
+
+# Bảng lỗi thường gặp
+
+| Lỗi / hiện tượng | Nguyên nhân | Cách sửa |
+|---|---|---|
+| Thêm vào `course.getStudents()` nhưng bảng `student_courses` **không có dòng mới** | Chỉ sửa **inverse side** (`mappedBy`) — Hibernate bỏ qua | Sửa ở owning side, dùng helper `student.enroll(course)` |
+| Bảng trung gian tên `students_courses`, cột `students_id` | Thiếu `@JoinTable` | Khai báo `@JoinTable(name = \"student_courses\", joinColumns…, inverseJoinColumns…)` |
+| Hibernate tạo **2** bảng trung gian | Cả 2 phía đều có `@ManyToMany` mà thiếu `mappedBy` | Thêm `mappedBy = \"courses\"` ở `Course` |
+| `mappedBy reference an unknown target entity property` | Giá trị `mappedBy` không khớp tên field | `mappedBy` = **tên field** bên `Student` (`courses`) |
+| `LazyInitializationException ... role: ...Student.courses` | Truy cập collection ngoài transaction (Runner, `toString`, seed không có `@Transactional`) | Xử lý trong Service, `JOIN FETCH`, `@EntityGraph`, hoặc `@Transactional` cho seed |
+| `StackOverflowError` khi in / khi `hashCode` | `@Data` hoặc `toString/hashCode` duyệt 2 collection gọi vòng | Tự viết `toString`; `equals/hashCode` chỉ dùng business key |
+| `contains()` trả `false` dù cùng khóa học; `remove()` không xoá | Không override `equals/hashCode`, hoặc dựa trên `id` (thay đổi sau khi save) | `equals/hashCode` theo `code` / `studentCode` |
+| Kết quả query bị **trùng** dòng | JOIN collection tạo 1 dòng mỗi cặp | `findDistinctBy...`, `SELECT DISTINCT`, `query.distinct(true)` |
+| `MultipleBagFetchException` | `JOIN FETCH` nhiều collection kiểu `List` | Dùng `Set`, hoặc fetch từng collection |
+| `HHH90003004: firstResult/maxResults specified with collection fetch` | Phân trang + `JOIN FETCH` collection | Bỏ fetch khi phân trang (TODO 19) |
+| `The DELETE statement conflicted with the REFERENCE constraint ... student_courses` | Xoá `Course` (inverse side) khi còn liên kết | Gỡ từ owning side trước (TODO 23) |
+| Violation of PRIMARY KEY constraint ... `student_courses` | Đăng ký trùng (student, course) | Kiểm tra `contains()` trước khi `enroll` |
+| `Could not resolve root entity 'student_courses'` | Dùng bảng trung gian trong JPQL | JPQL dùng `JOIN s.courses c`; chỉ native SQL mới dùng `student_courses` |
+| `Parameter value [7] did not match expected type [java.lang.Long]` | So sánh `SUM(...)` (Long) với tham số `int` | Khai báo tham số `long` (TODO 14) |
+| Getter projection trả `null` | Alias không khớp tên getter | `AS studentCode` ↔ `getStudentCode()` |
+| Đổi lớp thất bại nhưng sinh viên **mất** lớp cũ | `unenroll` và `enroll` ở 2 transaction khác nhau | Gộp vào 1 method `@Transactional` (TODO 22) |
+| Dữ liệu không đổi sau `enroll` | Method ghi thiếu `@Transactional` → chạy readOnly | Thêm `@Transactional` trên method ghi |
+| Cả `ExerciseRunner` (Ex1) và `Exercise2Runner` cùng chạy, kết quả sai | Chưa gắn `@Profile` hoặc sai `spring.profiles.active` | `@Profile(\"ex1\")` / `@Profile(\"ex2\")`, `spring.profiles.active=ex2` |
+| `No qualifying bean of type 'CourseService'` | Thiếu `@Service` trên `CourseServiceImpl` hoặc chưa `implements` | Gắn `@Service` lên class implementation |
+| Console in `?` thay cho ký tự đặc biệt | Encoding console Windows | Dùng ký tự ASCII (`[OK]`, `[FAIL]`) hoặc thêm VM option `-Dfile.encoding=UTF-8` |
+\" đọc nội dung tôi gởi tôi sẽ hỏi bạn vài thứ
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-06T14:13:46+07:00.
+</ADDITIONAL_METADATA>"}
+
