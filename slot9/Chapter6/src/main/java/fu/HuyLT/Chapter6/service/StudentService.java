@@ -11,10 +11,10 @@ public interface StudentService {
 
     Optional<Student> findById(Long id);
 
-    Student create(Student student);
+    Student create(fu.HuyLT.Chapter6.dto.StudentForm form);
 
     /** @return true nếu tìm thấy và cập nhật; false nếu không tồn tại id */
-    boolean update(Long id, Student data);
+    boolean update(Long id, fu.HuyLT.Chapter6.dto.StudentForm form);
 
     /** @return true nếu xoá được; false nếu không tồn tại id */
     boolean delete(Long id);

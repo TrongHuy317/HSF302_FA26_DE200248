@@ -74,33 +74,30 @@ public class StudentController {
 
     @GetMapping("/create")
     public String showCreateForm(Model model) {
-        model.addAttribute("student", new Student());
+        model.addAttribute("student", new fu.HuyLT.Chapter6.dto.StudentForm());
         return formView(model, false);
     }
 
     @PostMapping("/create")
-    public String create(@Valid @ModelAttribute("student") Student student,
+    public String create(@Valid @ModelAttribute("student") fu.HuyLT.Chapter6.dto.StudentForm form,
                          BindingResult bindingResult,
                          Model model,
                          RedirectAttributes ra) {
-        // 1. Kiểm tra nghiệp vụ: email trùng (chỉ khi email đã hợp lệ về định dạng)
         if (!bindingResult.hasFieldErrors("email")
-                && studentService.isEmailTaken(student.getEmail(), null)) {
+                && studentService.isEmailTaken(form.getEmail(), null)) {
             bindingResult.rejectValue("email", "duplicate", "Email đã tồn tại");
         }
-        // 2. Có lỗi → quay lại form (KHÔNG redirect để giữ dữ liệu + lỗi)
         if (bindingResult.hasErrors()) {
             return formView(model, false);
         }
-        // 3. Lưu DB — vẫn bắt lỗi UNIQUE phòng trường hợp 2 người submit cùng lúc
         try {
-            studentService.create(student);
+            studentService.create(form);
         } catch (DataIntegrityViolationException e) {
             bindingResult.rejectValue("email", "duplicate", "Email đã tồn tại");
             return formView(model, false);
         }
         ra.addFlashAttribute("successMsg", "Thêm sinh viên thành công!");
-        return "redirect:/students";                      // PRG pattern
+        return "redirect:/students";
     }
 
     // ==================== UPDATE ====================
@@ -109,7 +106,14 @@ public class StudentController {
     public String showEditForm(@PathVariable("id") Long id, Model model, RedirectAttributes ra) {
         return studentService.findById(id)
                 .map(student -> {
-                    model.addAttribute("student", student);
+                    fu.HuyLT.Chapter6.dto.StudentForm form = new fu.HuyLT.Chapter6.dto.StudentForm();
+                    form.setId(student.getId());
+                    form.setName(student.getName());
+                    form.setEmail(student.getEmail());
+                    form.setAge(student.getAge());
+                    form.setMajor(student.getMajor());
+                    form.setGpa(student.getGpa());
+                    model.addAttribute("student", form);
                     return formView(model, true);
                 })
                 .orElseGet(() -> {
@@ -120,21 +124,21 @@ public class StudentController {
 
     @PostMapping("/{id}/edit")
     public String update(@PathVariable("id") Long id,
-                         @Valid @ModelAttribute("student") Student student,
+                         @Valid @ModelAttribute("student") fu.HuyLT.Chapter6.dto.StudentForm form,
                          BindingResult bindingResult,
                          Model model,
                          RedirectAttributes ra) {
-        student.setId(id);   // form không gửi id → gắn từ URL để khi trả lỗi, form action vẫn đúng
+        form.setId(id);
 
         if (!bindingResult.hasFieldErrors("email")
-                && studentService.isEmailTaken(student.getEmail(), id)) {
+                && studentService.isEmailTaken(form.getEmail(), id)) {
             bindingResult.rejectValue("email", "duplicate", "Email đã được sinh viên khác sử dụng");
         }
         if (bindingResult.hasErrors()) {
             return formView(model, true);
         }
         try {
-            if (studentService.update(id, student)) {
+            if (studentService.update(id, form)) {
                 ra.addFlashAttribute("successMsg", "Cập nhật thành công!");
             } else {
                 ra.addFlashAttribute("errorMsg", "Không tìm thấy sinh viên ID: " + id);

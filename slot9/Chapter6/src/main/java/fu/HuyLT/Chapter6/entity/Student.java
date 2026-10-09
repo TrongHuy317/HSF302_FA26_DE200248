@@ -1,7 +1,6 @@
 package fu.HuyLT.Chapter6.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "students")
@@ -11,30 +10,18 @@ public class Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Tên không được để trống")
-    @Size(min = 2, max = 50, message = "Tên phải từ 2 đến 50 ký tự")
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
-    @NotBlank(message = "Email không được để trống")
-    @Email(message = "Email không đúng định dạng")
-    @Size(max = 100, message = "Email tối đa 100 ký tự")
     @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
 
-    @NotNull(message = "Tuổi không được để trống")
-    @Min(value = 18, message = "Tuổi tối thiểu là 18")
-    @Max(value = 30, message = "Tuổi tối đa là 30")
     @Column(name = "age", nullable = false)
     private Integer age;
 
-    @NotBlank(message = "Chuyên ngành không được để trống")
     @Column(name = "major", nullable = false, length = 20)
     private String major;
 
-    @NotNull(message = "GPA không được để trống")
-    @DecimalMin(value = "0.0", message = "GPA tối thiểu là 0.0")
-    @DecimalMax(value = "4.0", message = "GPA tối đa là 4.0")
     @Column(name = "gpa", nullable = false)
     private Double gpa;
 

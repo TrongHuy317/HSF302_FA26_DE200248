@@ -46,24 +46,27 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    @Transactional                      // ghi dữ liệu → bỏ readOnly
-    public Student create(Student student) {
-        student.setId(null);            // luôn INSERT, không bao giờ ghi đè bản ghi cũ
+    @Transactional
+    public Student create(fu.HuyLT.Chapter6.dto.StudentForm form) {
+        Student student = new Student();
+        student.setName(form.getName());
+        student.setEmail(form.getEmail());
+        student.setAge(form.getAge());
+        student.setMajor(form.getMajor());
+        student.setGpa(form.getGpa());
         return studentRepository.save(student);
     }
 
     @Override
     @Transactional
-    public boolean update(Long id, Student data) {
+    public boolean update(Long id, fu.HuyLT.Chapter6.dto.StudentForm form) {
         return studentRepository.findById(id)
                 .map(existing -> {
-                    existing.setName(data.getName());
-                    existing.setEmail(data.getEmail());
-                    existing.setAge(data.getAge());
-                    existing.setMajor(data.getMajor());
-                    existing.setGpa(data.getGpa());
-                    // Không cần gọi save(): entity đang "managed",
-                    // Hibernate tự sinh UPDATE khi transaction commit (dirty checking)
+                    existing.setName(form.getName());
+                    existing.setEmail(form.getEmail());
+                    existing.setAge(form.getAge());
+                    existing.setMajor(form.getMajor());
+                    existing.setGpa(form.getGpa());
                     return true;
                 })
                 .orElse(false);
