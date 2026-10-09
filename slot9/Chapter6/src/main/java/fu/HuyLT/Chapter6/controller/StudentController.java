@@ -31,11 +31,21 @@ public class StudentController {
         return studentService.getMajors();
     }
 
-    // ==================== READ ALL / SEARCH ====================
+    // ==================== READ ALL / SEARCH / PAGINATE ====================
     @GetMapping
-    public String list(Model model, @RequestParam(value = "keyword", required = false) String keyword) {
-        model.addAttribute("students", studentService.searchStudents(keyword));
+    public String list(Model model, 
+                       @RequestParam(value = "keyword", required = false) String keyword,
+                       @RequestParam(value = "page", defaultValue = "0") int page,
+                       @RequestParam(value = "size", defaultValue = "5") int size) {
+        
+        org.springframework.data.domain.Page<Student> studentPage = studentService.getStudentsPaginated(keyword, page, size);
+        
+        model.addAttribute("students", studentPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", studentPage.getTotalPages());
+        model.addAttribute("totalItems", studentPage.getTotalElements());
         model.addAttribute("keyword", keyword);
+        
         return "students/list";
     }
 

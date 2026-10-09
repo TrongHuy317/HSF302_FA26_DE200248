@@ -26,12 +26,14 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public List<Student> searchStudents(String keyword) {
-        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+    public org.springframework.data.domain.Page<Student> getStudentsPaginated(String keyword, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                page, size, Sort.by(Sort.Direction.ASC, "id")
+        );
         if (keyword == null || keyword.trim().isEmpty()) {
-            return studentRepository.findAll(sort);
+            return studentRepository.findAll(pageable);
         }
-        return studentRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword.trim(), keyword.trim(), sort);
+        return studentRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword.trim(), keyword.trim(), pageable);
     }
 
     @Override
