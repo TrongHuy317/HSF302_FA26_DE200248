@@ -48,12 +48,61 @@
                 <thead>
                 <tr>
                     <th>#</th>
-                    <th>ID</th>
-                    <th>Họ tên</th>
-                    <th>Email</th>
-                    <th>Tuổi</th>
-                    <th>Chuyên ngành</th>
-                    <th>GPA</th>
+                    
+                    <!-- CỘT ID -->
+                    <th>
+                        <a class="text-dark text-decoration-none"
+                           th:href="@{/students(keyword=${keyword}, page=0, size=5, sortField='id', sortDir=${sortField == 'id' ? reverseSortDir : 'asc'})}">
+                            ID
+                            <i th:if="${sortField == 'id'}" th:class="${sortDir == 'asc' ? 'bi bi-arrow-up-short' : 'bi bi-arrow-down-short'}"></i>
+                        </a>
+                    </th>
+                    
+                    <!-- CỘT HỌ TÊN -->
+                    <th>
+                        <a class="text-dark text-decoration-none"
+                           th:href="@{/students(keyword=${keyword}, page=0, size=5, sortField='name', sortDir=${sortField == 'name' ? reverseSortDir : 'asc'})}">
+                            Họ tên
+                            <i th:if="${sortField == 'name'}" th:class="${sortDir == 'asc' ? 'bi bi-arrow-up-short' : 'bi bi-arrow-down-short'}"></i>
+                        </a>
+                    </th>
+                    
+                    <!-- CỘT EMAIL -->
+                    <th>
+                        <a class="text-dark text-decoration-none"
+                           th:href="@{/students(keyword=${keyword}, page=0, size=5, sortField='email', sortDir=${sortField == 'email' ? reverseSortDir : 'asc'})}">
+                            Email
+                            <i th:if="${sortField == 'email'}" th:class="${sortDir == 'asc' ? 'bi bi-arrow-up-short' : 'bi bi-arrow-down-short'}"></i>
+                        </a>
+                    </th>
+                    
+                    <!-- CỘT TUỔI -->
+                    <th>
+                        <a class="text-dark text-decoration-none"
+                           th:href="@{/students(keyword=${keyword}, page=0, size=5, sortField='age', sortDir=${sortField == 'age' ? reverseSortDir : 'asc'})}">
+                            Tuổi
+                            <i th:if="${sortField == 'age'}" th:class="${sortDir == 'asc' ? 'bi bi-arrow-up-short' : 'bi bi-arrow-down-short'}"></i>
+                        </a>
+                    </th>
+                    
+                    <!-- CỘT CHUYÊN NGÀNH -->
+                    <th>
+                        <a class="text-dark text-decoration-none"
+                           th:href="@{/students(keyword=${keyword}, page=0, size=5, sortField='major', sortDir=${sortField == 'major' ? reverseSortDir : 'asc'})}">
+                            Chuyên ngành
+                            <i th:if="${sortField == 'major'}" th:class="${sortDir == 'asc' ? 'bi bi-arrow-up-short' : 'bi bi-arrow-down-short'}"></i>
+                        </a>
+                    </th>
+                    
+                    <!-- CỘT GPA -->
+                    <th>
+                        <a class="text-dark text-decoration-none"
+                           th:href="@{/students(keyword=${keyword}, page=0, size=5, sortField='gpa', sortDir=${sortField == 'gpa' ? reverseSortDir : 'asc'})}">
+                            GPA
+                            <i th:if="${sortField == 'gpa'}" th:class="${sortDir == 'asc' ? 'bi bi-arrow-up-short' : 'bi bi-arrow-down-short'}"></i>
+                        </a>
+                    </th>
+                    
                     <th class="text-center">Thao tác</th>
                 </tr>
                 </thead>
@@ -111,7 +160,7 @@
                 
                 <!-- Nút "Trước" -->
                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                    <a class="page-link" th:href="@{/students(keyword=${keyword}, page=${currentPage - 1}, size=5)}">
+                    <a class="page-link" th:href="@{/students(keyword=${keyword}, page=${currentPage - 1}, size=5, sortField=${sortField}, sortDir=${sortDir})}">
                         &laquo; Trước
                     </a>
                 </li>
@@ -119,12 +168,12 @@
                 <!-- Hiển thị các con số 1, 2, 3... -->
                 <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
                     th:classappend="${currentPage == i} ? 'active'">
-                    <a class="page-link" th:href="@{/students(keyword=${keyword}, page=${i}, size=5)}" th:text="${i + 1}">1</a>
+                    <a class="page-link" th:href="@{/students(keyword=${keyword}, page=${i}, size=5, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
                 </li>
 
                 <!-- Nút "Sau" -->
                 <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                    <a class="page-link" th:href="@{/students(keyword=${keyword}, page=${currentPage + 1}, size=5)}">
+                    <a class="page-link" th:href="@{/students(keyword=${keyword}, page=${currentPage + 1}, size=5, sortField=${sortField}, sortDir=${sortDir})}">
                         Sau &raquo;
                     </a>
                 </li>

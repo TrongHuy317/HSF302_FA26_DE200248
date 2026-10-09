@@ -31,20 +31,26 @@ public class StudentController {
         return studentService.getMajors();
     }
 
-    // ==================== READ ALL / SEARCH / PAGINATE ====================
+    // ==================== READ ALL / SEARCH / PAGINATE / SORT ====================
     @GetMapping
     public String list(Model model, 
                        @RequestParam(value = "keyword", required = false) String keyword,
                        @RequestParam(value = "page", defaultValue = "0") int page,
-                       @RequestParam(value = "size", defaultValue = "5") int size) {
+                       @RequestParam(value = "size", defaultValue = "5") int size,
+                       @RequestParam(value = "sortField", defaultValue = "id") String sortField,
+                       @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir) {
         
-        org.springframework.data.domain.Page<Student> studentPage = studentService.getStudentsPaginated(keyword, page, size);
+        org.springframework.data.domain.Page<Student> studentPage = studentService.getStudentsPaginated(keyword, page, size, sortField, sortDir);
+        String reverseSortDir = sortDir.equals("asc") ? "desc" : "asc";
         
         model.addAttribute("students", studentPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", studentPage.getTotalPages());
         model.addAttribute("totalItems", studentPage.getTotalElements());
         model.addAttribute("keyword", keyword);
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", reverseSortDir);
         
         return "students/list";
     }

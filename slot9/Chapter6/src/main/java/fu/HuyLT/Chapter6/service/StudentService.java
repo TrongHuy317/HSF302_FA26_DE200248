@@ -7,7 +7,7 @@ import java.util.Optional;
 public interface StudentService {
     List<Student> findAll();
     
-    org.springframework.data.domain.Page<Student> getStudentsPaginated(String keyword, int page, int size);
+    org.springframework.data.domain.Page<Student> getStudentsPaginated(String keyword, int page, int size, String sortField, String sortDir);
 
     Optional<Student> findById(Long id);
 

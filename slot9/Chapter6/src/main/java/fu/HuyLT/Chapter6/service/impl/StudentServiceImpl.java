@@ -26,9 +26,13 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public org.springframework.data.domain.Page<Student> getStudentsPaginated(String keyword, int page, int size) {
+    public org.springframework.data.domain.Page<Student> getStudentsPaginated(String keyword, int page, int size, String sortField, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortField).ascending()
+                : Sort.by(sortField).descending();
+        
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
-                page, size, Sort.by(Sort.Direction.ASC, "id")
+                page, size, sort
         );
         if (keyword == null || keyword.trim().isEmpty()) {
             return studentRepository.findAll(pageable);
