@@ -31,11 +31,11 @@ public class StudentController {
         return studentService.getMajors();
     }
 
-    // ==================== READ ALL ====================
-
+    // ==================== READ ALL / SEARCH ====================
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("students", studentService.findAll());
+    public String list(Model model, @RequestParam(value = "keyword", required = false) String keyword) {
+        model.addAttribute("students", studentService.searchStudents(keyword));
+        model.addAttribute("keyword", keyword);
         return "students/list";
     }
 

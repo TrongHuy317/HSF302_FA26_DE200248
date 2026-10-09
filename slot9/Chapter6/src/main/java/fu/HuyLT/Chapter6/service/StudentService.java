@@ -6,6 +6,8 @@ import java.util.Optional;
 
 public interface StudentService {
     List<Student> findAll();
+    
+    List<Student> searchStudents(String keyword);
 
     Optional<Student> findById(Long id);
 

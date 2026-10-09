@@ -26,6 +26,15 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public List<Student> searchStudents(String keyword) {
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return studentRepository.findAll(sort);
+        }
+        return studentRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword.trim(), keyword.trim(), sort);
+    }
+
+    @Override
     public Optional<Student> findById(Long id) {
         return studentRepository.findById(id);
     }

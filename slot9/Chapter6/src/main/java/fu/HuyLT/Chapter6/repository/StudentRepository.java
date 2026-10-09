@@ -14,4 +14,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     /** Email đã được sinh viên KHÁC dùng? (dùng khi cập nhật) */
     boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
 
+    /** Bài 1: Tìm kiếm theo tên hoặc email */
+    java.util.List<Student> findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email, org.springframework.data.domain.Sort sort);
+
 }
