@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Thêm sản phẩm</title>
-    <link rel="stylesheet" th:href="@{/vendor/bootstrap/css/bootstrap.min.css}"/>
+    <th:block th:replace="~{fragments/layout :: commonHead('Thêm sản phẩm')}"></th:block>
 </head>
 <body>
+<nav th:replace="~{fragments/layout :: navbar('sanpham')}"></nav>
+
 <main class="container py-4" style="max-width: 600px">
+    <th:block th:replace="~{fragments/layout :: alerts}"></th:block>
+
     <h2 class="h4 mb-3">Thêm sản phẩm mới</h2>
 
     <form th:action="@{/sanpham/them}" th:object="${sanPham}" method="post"
@@ -34,5 +36,8 @@
         </div>
     </form>
 </main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>

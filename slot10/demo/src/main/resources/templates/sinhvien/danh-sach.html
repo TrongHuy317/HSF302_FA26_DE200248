@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title th:text="${tieuDe}">Danh sách</title>
-    <!-- Bootstrap OFFLINE (TODO 0.3). Dùng online thì thay bằng link CDN. -->
-    <link rel="stylesheet" th:href="@{/vendor/bootstrap/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <th:block th:replace="~{fragments/layout :: commonHead(${tieuDe})}"></th:block>
 </head>
 <body>
+<nav th:replace="~{fragments/layout :: navbar('sinhvien')}"></nav>
+
 <main class="container py-4">
+    <th:block th:replace="~{fragments/layout :: alerts}"></th:block>
 
     <h1 class="h3 mb-3" th:text="${tieuDe}">Tiêu đề</h1>
 
@@ -50,5 +48,8 @@
         Tổng: <strong th:text="${#lists.size(sinhViens)}">0</strong> sinh viên
     </p>
 </main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>
