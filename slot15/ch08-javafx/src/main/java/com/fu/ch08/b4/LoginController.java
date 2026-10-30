@@ -1,9 +1,11 @@
 package com.fu.ch08.b4;
 
+import com.fu.ch08.common.AlertUtil;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 
 import java.util.Map;
 
@@ -25,9 +27,7 @@ public class LoginController {
     // TODO 4: initialize() — chạy SAU khi các @FXML đã được inject (constructor thì chưa!)
     @FXML
     public void initialize() {
-        // Hai ô password đồng bộ nội dung
         tfPasswordVisible.textProperty().bindBidirectional(pfPassword.textProperty());
-        // Hiện/ẩn: visible + managed (managed=false để node không chiếm chỗ trong layout)
         tfPasswordVisible.visibleProperty().bind(chkShow.selectedProperty());
         tfPasswordVisible.managedProperty().bind(chkShow.selectedProperty());
         pfPassword.visibleProperty().bind(chkShow.selectedProperty().not());
@@ -38,9 +38,38 @@ public class LoginController {
         Platform.runLater(tfUsername::requestFocus);
     }
 
+    // TODO 5: Xử lý đăng nhập
     @FXML
-    private void handleLogin(ActionEvent e) {}
+    private void handleLogin(ActionEvent e) {
+        String user = tfUsername.getText().trim().toLowerCase();
+        String pass = pfPassword.getText();
+        String role = cbRole.getValue();
+
+        if (failedCount >= 3) { lblError.setText("Sai quá 3 lần. Vui lòng khởi động lại ứng dụng."); return; }
+        if (!user.matches("[a-z0-9_]{3,20}")) { lblError.setText("Username 3–20 ký tự, chỉ chữ thường/số/_"); return; }
+
+        String[] acc = ACCOUNTS.get(user);
+        if (acc == null || !acc[0].equals(pass)) {
+            failedCount++;
+            lblError.setText("Sai username hoặc mật khẩu (còn %d lần)".formatted(3 - failedCount));
+            pfPassword.clear();
+            return;
+        }
+        if (!acc[1].equals(role)) { lblError.setText("Vai trò không đúng với tài khoản"); return; }
+
+        lblError.setText("");
+        openWelcome(user, role, (Stage) btnLogin.getScene().getWindow());
+    }
+
+    private void openWelcome(String user, String role, Stage loginStage) {}
 
     @FXML
-    private void handleForgot() {}
+    private void handleForgot() {
+        TextInputDialog d = new TextInputDialog();
+        d.setHeaderText("Nhập email để lấy lại mật khẩu");
+        d.showAndWait().ifPresent(email -> {
+            if (email.matches("^[\\w.+-]+@[\\w-]+(\\.[\\w-]+)+$")) AlertUtil.info("Đã gửi hướng dẫn tới " + email);
+            else AlertUtil.warn("Email không hợp lệ");
+        });
+    }
 }
