@@ -2,6 +2,7 @@ package com.fu.ch08.b1;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -101,6 +102,20 @@ public class DrinkOrderApp extends Application {
             reset();
             log("Bấm Làm lại");
         });
+
+        // TODO 6: Cách 3 — anonymous class (viết "dài" để hiểu bản chất: EventHandler là interface 1 method handle)
+        cbDrink.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                String d = cbDrink.getValue();
+                if (d != null) {            // reset() gọi setValue(null) cũng kích hoạt onAction → phải kiểm tra null
+                    log("Chọn đồ uống: %s (%,d đ)".formatted(d, MENU.get(d)));
+                }
+            }
+        });
+
+        // TextField: nhấn Enter → ActionEvent. Vì tfName có onAction nên Enter KHÔNG kích hoạt defaultButton
+        tfName.setOnAction(e -> cbDrink.requestFocus());
     }
 
     private void handleCalc(ActionEvent e) {
