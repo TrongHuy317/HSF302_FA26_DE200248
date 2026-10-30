@@ -8,5 +8,6 @@ module com.fu.ch08 {
 
     exports com.fu.ch08;
     exports com.fu.ch08.b1;
+    exports com.fu.ch08.b2;
     exports com.fu.ch08.common;
 }
