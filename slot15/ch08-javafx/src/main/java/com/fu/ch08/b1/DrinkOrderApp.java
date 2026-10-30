@@ -1,6 +1,7 @@
 package com.fu.ch08.b1;
 
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -82,11 +83,21 @@ public class DrinkOrderApp extends Application {
         VBox root = new VBox(12, title, form, buttons, lblResult, new Label("Nhật ký sự kiện:"), taLog);
         root.setPadding(new Insets(16));
 
+        registerEvents();
+
         Scene scene = new Scene(root, 540, 580);
         stage.setScene(scene);
         stage.setTitle("B1 - Controls & Sự kiện");
         stage.show();
         tfName.requestFocus();
+    }
+
+    private void registerEvents() {
+        // TODO 4: Cách 1 — method reference (gọn khi logic dài, tách ra method riêng)
+        btnCalc.setOnAction(this::handleCalc);
+    }
+
+    private void handleCalc(ActionEvent e) {
     }
 
     public static void main(String[] args) {
