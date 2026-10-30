@@ -160,8 +160,20 @@ public class LoginLayoutApp extends Application {
         return track(center);
     }
 
+    // TODO 5: Footer — HBox: CheckBox debug | spacer | bản quyền
     private Node buildFooter() {
-        return new Region();
+        CheckBox chkDebug = new CheckBox("Hiện viền layout (debug)");
+        chkDebug.setOnAction(e -> containers.forEach(
+                r -> r.setBorder(chkDebug.isSelected() ? DEBUG_BORDER : null)));
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox footer = new HBox(10, chkDebug, spacer, new Label("© 2026 HSF302 — Chapter 08"));
+        footer.setAlignment(Pos.CENTER_LEFT);
+        footer.setPadding(new Insets(6, 16, 6, 16));
+        footer.setStyle("-fx-background-color: #cfd8dc;");
+        return track(footer);
     }
 
     private Parent buildHomeView(String user) {
