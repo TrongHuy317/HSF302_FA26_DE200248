@@ -95,9 +95,21 @@ public class DrinkOrderApp extends Application {
     private void registerEvents() {
         // TODO 4: Cách 1 — method reference (gọn khi logic dài, tách ra method riêng)
         btnCalc.setOnAction(this::handleCalc);
+
+        // TODO 5: Cách 2 — lambda (phổ biến nhất)
+        btnClear.setOnAction(e -> {
+            reset();
+            log("Bấm Làm lại");
+        });
     }
 
     private void handleCalc(ActionEvent e) {
+    }
+
+    private void reset() {
+    }
+
+    private void log(String msg) {
     }
 
     public static void main(String[] args) {
