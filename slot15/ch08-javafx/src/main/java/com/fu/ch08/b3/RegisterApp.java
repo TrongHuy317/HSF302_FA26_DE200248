@@ -90,14 +90,63 @@ public class RegisterApp extends Application {
         btnRegister.setDefaultButton(true);
     }
 
-    private Parent buildRegisterView() { return new StackPane(); }
-    private void registerEvents() {}
+    // TODO 3: Giao diện — GridPane 2 cột, mỗi ô nhập kèm label lỗi bên dưới
+    private Parent buildRegisterView() {
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(6);
+        int r = 0;
+        addField(grid, r++, "Họ tên *", tfFullName, errFullName);
+        addField(grid, r++, "Email *", tfEmail, errEmail);
+        addField(grid, r++, "Username *", tfUsername, errUsername);
+        HBox strength = new HBox(8, pbStrength, lblStrength);
+        strength.setAlignment(Pos.CENTER_LEFT);
+        addField(grid, r++, "Mật khẩu *", new VBox(4, pfPassword, strength), errPassword);
+        addField(grid, r++, "Xác nhận MK *", pfConfirm, errConfirm);
+        addField(grid, r++, "Giới tính *", new HBox(15, rbMale, rbFemale, rbOther), errGender);
+        addField(grid, r++, "Ngày sinh *", dpDob, errDob);
+        addField(grid, r++, "Ngành *", cbMajor, errMajor);
+        addField(grid, r++, "Sở thích", new FlowPane(12, 6, chkSport, chkMusic, chkGame, chkReading), null);
+
+        ColumnConstraints c0 = new ColumnConstraints(110);
+        ColumnConstraints c1 = new ColumnConstraints();
+        c1.setHgrow(Priority.ALWAYS);
+        grid.getColumnConstraints().addAll(c0, c1);
+
+        Label title = new Label("ĐĂNG KÝ TÀI KHOẢN");
+        title.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1a73e8;");
+
+        HBox actions = new HBox(10, btnRegister, btnReset);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        Hyperlink linkLogin = new Hyperlink("Đã có tài khoản? Đăng nhập");
+        linkLogin.setOnAction(e -> scene.setRoot(buildLoginView("")));
+
+        VBox form = new VBox(12, title, grid, chkAgree, actions, linkLogin);
+        form.setPadding(new Insets(20));
+
+        ScrollPane sp = new ScrollPane(form);
+        sp.setFitToWidth(true);
+        return sp;
+    }
+
+    private void addField(GridPane grid, int row, String label, Node input, Label error) {
+        Label lbl = new Label(label);
+        lbl.setPadding(new Insets(4, 0, 0, 0));
+        GridPane.setValignment(lbl, VPos.TOP);
+        grid.add(lbl, 0, row);
+        grid.add(error == null ? input : new VBox(2, input, error), 1, row);
+    }
+
     private static Label err() {
         Label l = new Label();
         l.setStyle("-fx-text-fill: #d93025; -fx-font-size: 11;");
         l.setWrapText(true);
         return l;
     }
+
+    private void registerEvents() {}
+    private Parent buildLoginView(String prefillUser) { return new StackPane(); }
 
     public static void main(String[] args) {
         launch(args);
