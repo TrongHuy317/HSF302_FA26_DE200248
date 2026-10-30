@@ -261,7 +261,19 @@ public class RegisterApp extends Application {
         scene.setRoot(buildLoginView(u.username()));
     }
 
-    private void resetForm() {}
+    // TODO 8: Làm lại form
+    private void resetForm() {
+        Stream.of(tfFullName, tfEmail, tfUsername, pfPassword, pfConfirm).forEach(TextInputControl::clear);
+        tgGender.selectToggle(null);
+        dpDob.setValue(null);
+        cbMajor.setValue(null);
+        Stream.of(chkSport, chkMusic, chkGame, chkReading, chkAgree).forEach(c -> c.setSelected(false));
+
+        Stream.of(errFullName, errEmail, errUsername, errPassword, errConfirm, errGender, errDob, errMajor)
+                .forEach(l -> l.setText(""));
+        tfFullName.requestFocus();
+    }
+
     private Parent buildLoginView(String prefillUser) { return new StackPane(); }
 
     public static void main(String[] args) {
