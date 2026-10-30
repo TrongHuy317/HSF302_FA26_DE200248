@@ -1,5 +1,8 @@
 package com.fu.ch08.common;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+
 public final class AlertUtil {
     private AlertUtil() {}
 
