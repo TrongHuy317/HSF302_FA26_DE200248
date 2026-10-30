@@ -145,7 +145,43 @@ public class RegisterApp extends Application {
         return l;
     }
 
-    private void registerEvents() {}
+    // TODO 4: Đăng ký sự kiện
+    private void registerEvents() {
+        onFocusLost(tfFullName, this::vFullName);
+        onFocusLost(tfEmail, this::vEmail);
+        onFocusLost(tfUsername, this::vUsername);
+        onFocusLost(pfPassword, this::vPassword);
+        onFocusLost(pfConfirm, this::vConfirm);
+
+        tgGender.selectedToggleProperty().addListener((obs, o, n) -> vGender());
+        dpDob.valueProperty().addListener((obs, o, n) -> vDob());
+        cbMajor.valueProperty().addListener((obs, o, n) -> vMajor());
+
+        pfPassword.textProperty().addListener((obs, o, n) -> updateStrength(n));
+
+        btnRegister.setOnAction(e -> handleRegister());
+        btnReset.setOnAction(e -> {
+            if (AlertUtil.confirm("Xóa toàn bộ dữ liệu đã nhập?")) resetForm();
+        });
+    }
+
+    private void onFocusLost(Node node, BooleanSupplier validator) {
+        node.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused) validator.getAsBoolean();
+        });
+    }
+
+    private boolean vFullName() { return true; }
+    private boolean vEmail() { return true; }
+    private boolean vUsername() { return true; }
+    private boolean vPassword() { return true; }
+    private boolean vConfirm() { return true; }
+    private boolean vGender() { return true; }
+    private boolean vDob() { return true; }
+    private boolean vMajor() { return true; }
+    private void updateStrength(String s) {}
+    private void handleRegister() {}
+    private void resetForm() {}
     private Parent buildLoginView(String prefillUser) { return new StackPane(); }
 
     public static void main(String[] args) {
